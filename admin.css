@@ -386,6 +386,14 @@ input[disabled] {
   font-size: 12px;
 }
 
+.filter-toolbar[hidden],
+.erp-table-wrap[hidden],
+.erp-pagination[hidden],
+.subpanel-box[hidden],
+.freeze-notice-bar[hidden] {
+  display: none !important;
+}
+
 /* 筛选工具栏 */
 .filter-toolbar {
   display: flex;
