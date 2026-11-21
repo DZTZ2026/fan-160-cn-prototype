@@ -2,152 +2,210 @@
   const H5_RECORDS_KEY = "fan160_prd_records_v2";
   const BASE_ISSUED = 53000;
 
-  const ROLE_NAMES = {
-    ops: "运营管理员",
-    draw: "开奖授权员",
-    finance: "财务审核员"
-  };
-
-  const TAB_TITLES = {
-    activities: "活动管理与配置",
-    tickets: "号码记录与开奖",
-    channels: "博主渠道与归因",
-    settlement: "推广结算对账",
-    logs: "操作审计日志"
-  };
-
-  // 初始数据
+  // 活动列表数据（首条为我们本期核心「站外抽奖」活动，其余还原真实站点活动中心样本）
   let activities = [
     {
-      id: "FAN160_2026",
-      round: "第 202601 期",
-      name: "本田 Fan 160 2025 编号抽奖",
+      id: 120088,
+      name: "本田 Fan 160 2025（第1期）",
+      category: "站外抽奖",
+      currency: "BRL",
+      type: "抽奖",
+      formType: "站外抽奖",
+      condition: "需登录平台账号 · 免费领号",
+      level: "不限制",
+      vip: "不限制",
+      tag: "不限制",
+      audit: "1.00",
+      terminal: "H5_WEB(活动落地页), Android_APP, ...",
+      banner: "assets/fan-160-hero.jpg",
+      dispatchMode: "人工触发开奖",
+      startTime: "2026-11-18",
+      endTime: "2026-12-18",
+      showStart: "2026-11-18",
+      showEnd: "2026-12-18",
+      status: "进行中",
+      operator: "Cooper",
+      operateTime: "2026-11-21 15:20:00",
+      round: "第1期",
       sponsor: "塔瓦雷斯活动方",
-      range: "000001 - 100000（6位）",
-      total: 100000,
+      numStart: "000001",
+      numEnd: "100000",
+      digits: 6,
+      totalPool: 100000,
       simulatedFull: false,
-      startTime: "2026-11-18 00:00",
-      endTime: "2026-12-18 23:59",
-      ruleVersion: "v1.0（已冻结）",
-      status: "进行中", // 草稿 | 进行中 | 待开奖 | 已开奖 | 已取消
-      lockedAt: "",
-      drawnAt: "",
-      winningNumber: ""
+      winningNumber: "",
+      prizes: [
+        { name: "一等奖", content: "2025款 本田 Fan 160 摩托车", qty: 1 },
+        { name: "2等奖", content: "现金幸运奖 ¥500", qty: 8 },
+        { name: "3等奖", content: "平台专属体验彩金", qty: 20 }
+      ],
+      kols: [
+        { code: "B0001", name: "Tavares 44 官方主号", status: "启用", start: "2026-11-18", end: "2026-12-18" },
+        { code: "B0002", name: "巴西机车测评社", status: "启用", start: "2026-11-18", end: "2026-12-18" }
+      ],
+      unitRate: 12.5,
+      isCoreLottery: true
     },
     {
-      id: "FAN160_2026_02",
-      round: "第 202602 期",
-      name: "iPhone 17 Pro Max 迎新编号抽奖",
-      sponsor: "塔瓦雷斯活动方",
-      range: "000001 - 050000（6位）",
-      total: 50000,
-      simulatedFull: false,
-      startTime: "2026-12-20 00:00",
-      endTime: "2027-01-20 23:59",
-      ruleVersion: "v0.1（草稿）",
-      status: "草稿",
-      lockedAt: "",
-      drawnAt: "",
-      winningNumber: ""
+      id: 1029,
+      name: "ash打码",
+      category: "综合",
+      currency: "BRL,USD",
+      type: "打码",
+      formType: "站内活动",
+      condition: "每日打码",
+      level: "默认层级,首充玩家",
+      vip: "VIP0,VIP1",
+      tag: "不限制",
+      audit: "1.00",
+      terminal: "iOS_APP(iOS描述签), Android_APP(极速APP), ...",
+      banner: "",
+      dispatchMode: "玩家自领-过期作废",
+      startTime: "2026-10-29",
+      endTime: "2026-11-30",
+      showStart: "2026-10-29",
+      showEnd: "2026-11-30",
+      status: "进行中",
+      operator: "Elaine01",
+      operateTime: "2026-11-12 07:39:26"
+    },
+    {
+      id: 120014,
+      name: "新人彩金-ash",
+      category: "综合",
+      currency: "BRL",
+      type: "新人彩金",
+      formType: "站内活动",
+      condition: "无条件参与",
+      level: "不限制",
+      vip: "不限制",
+      tag: "不限制",
+      audit: "1.00",
+      terminal: "iOS_APP(iOS描述签), Android_APP(极速APP), ...",
+      banner: "",
+      dispatchMode: "-",
+      startTime: "2026-11-18",
+      endTime: "2026-11-28",
+      showStart: "2026-11-18",
+      showEnd: "2026-11-28",
+      status: "进行中",
+      operator: "ash6",
+      operateTime: "2026-11-18 22:16:07"
+    },
+    {
+      id: 90820,
+      name: "今日累计投注",
+      category: "测试活动",
+      currency: "所有币种",
+      type: "红包",
+      formType: "站内活动",
+      condition: "无条件",
+      level: "不限制",
+      vip: "不限制",
+      tag: "不限制",
+      audit: "1.00",
+      terminal: "iOS_APP(iOS描述签), Android_APP(极速APP), ...",
+      banner: "",
+      dispatchMode: "不适用",
+      startTime: "不限",
+      endTime: "",
+      showStart: "不限",
+      showEnd: "",
+      status: "进行中",
+      operator: "lio6",
+      operateTime: "2026-11-12 23:45:45"
+    },
+    {
+      id: 90618,
+      name: "单笔分多期派发",
+      category: "综合",
+      currency: "所有币种",
+      type: "充值",
+      formType: "站内活动",
+      condition: "单笔充值",
+      level: "不限制",
+      vip: "不限制",
+      tag: "不限制",
+      audit: "1.00",
+      terminal: "iOS_APP(iOS描述签), Android_APP(极速APP), ...",
+      banner: "",
+      dispatchMode: "系统立即自动派发",
+      startTime: "不限",
+      endTime: "",
+      showStart: "不限",
+      showEnd: "",
+      status: "进行中",
+      operator: "mark05",
+      operateTime: "2026-11-09 05:24:21"
+    },
+    {
+      id: 60619,
+      name: "QA救援金_TC12_每周",
+      category: "测试活动",
+      currency: "所有币种",
+      type: "救援金",
+      formType: "站内活动",
+      condition: "每周救援金",
+      level: "不限制",
+      vip: "不限制",
+      tag: "不限制",
+      audit: "1.00",
+      terminal: "iOS_APP(iOS描述签), Android_APP(极速APP), ...",
+      banner: "",
+      dispatchMode: "玩家自领-过期作废",
+      startTime: "2026-11-12",
+      endTime: "2027-11-30",
+      showStart: "2026-11-12",
+      showEnd: "2027-11-30",
+      status: "已关闭",
+      operator: "mark05",
+      operateTime: "2026-11-12 00:34:36"
     }
   ];
 
-  let kolChannels = [
-    {
-      kolId: "KOL_Tavares44",
-      name: "Tavares 44 官方主号",
-      clicks: 14820,
-      registered: 2416,
-      validReg: 2180,
-      status: "生效中"
-    },
-    {
-      kolId: "KOL_MotoBrasil",
-      name: "巴西机车测评社",
-      clicks: 8340,
-      registered: 1125,
-      validReg: 980,
-      status: "生效中"
-    },
-    {
-      kolId: "KOL_Demo01",
-      name: "测试合作博主 01",
-      clicks: 1290,
-      registered: 162,
-      validReg: 138,
-      status: "已停用"
-    }
-  ];
-
+  // 结算单数据（PRD R07）
   let settlements = [
     {
       id: "SET-202611-01",
-      kolId: "KOL_Tavares44",
-      activity: "第 202601 期 · 本田 Fan 160",
-      period: "2026-11-01 ~ 2026-11-15",
-      rateVersion: "RATE-v1.0",
-      unitPrice: 2.5,
-      currency: "USD",
-      validCount: 1420,
-      excludedCount: 158,
-      adjustAmount: 0,
-      adjustments: [],
-      status: "待核对", // 待核对 | 已确认 | 已付款
-      paidAt: "",
-      voucherNo: ""
+      kolCode: "B0001",
+      kolName: "Tavares 44 官方主号",
+      period: "2026-11-01 ~ 2026-11-30",
+      rateVer: "RATE-v1.0",
+      unitRate: 12.5,
+      validReg: 1420,
+      excluded: 158,
+      adjust: 0,
+      status: "待核对",
+      voucher: ""
     },
     {
       id: "SET-202611-02",
-      kolId: "KOL_MotoBrasil",
-      activity: "第 202601 期 · 本田 Fan 160",
-      period: "2026-11-01 ~ 2026-11-15",
-      rateVersion: "RATE-v1.0",
-      unitPrice: 2.2,
-      currency: "USD",
-      validCount: 680,
-      excludedCount: 74,
-      adjustAmount: -44.0,
-      adjustments: [{ time: "2026-11-19 10:12", amount: -44.0, reason: "复核剔除 20 笔同设备异常注册" }],
+      kolCode: "B0002",
+      kolName: "巴西机车测评社",
+      period: "2026-11-01 ~ 2026-11-30",
+      rateVer: "RATE-v1.0",
+      unitRate: 11.0,
+      validReg: 680,
+      excluded: 74,
+      adjust: -220,
       status: "已确认",
-      paidAt: "",
-      voucherNo: ""
+      voucher: ""
     },
     {
       id: "SET-202610-09",
-      kolId: "KOL_Tavares44",
-      activity: "第 202510 期 · 往期预热活动",
-      period: "2026-10-16 ~ 2026-10-31",
-      rateVersion: "RATE-v0.9",
-      unitPrice: 2.0,
-      currency: "USD",
-      validCount: 950,
-      excludedCount: 61,
-      adjustAmount: 0,
-      adjustments: [],
+      kolCode: "B0001",
+      kolName: "Tavares 44 官方主号",
+      period: "2026-10-01 ~ 2026-10-31",
+      rateVer: "RATE-v0.9",
+      unitRate: 10.0,
+      validReg: 950,
+      excluded: 61,
+      adjust: 0,
       status: "已付款",
-      paidAt: "2026-11-05 16:40",
-      voucherNo: "PAY-USDT-202611058841"
+      voucher: "PIX-20261105-8841"
     }
   ];
 
-  let auditLogs = [
-    {
-      time: "2026-11-21 15:20:00",
-      role: "运营管理员",
-      module: "活动管理",
-      action: "发布并冻结规则版本",
-      detail: "发布第 202601 期「本田 Fan 160 2025」，号码池 000001-100000，冻结版本 v1.0。"
-    },
-    {
-      time: "2026-11-19 10:12:45",
-      role: "财务审核员",
-      module: "推广结算",
-      action: "确认结算单并记录调账",
-      detail: "结算单 SET-202611-02 已确认锁定，调账 -$44.00（原因：复核剔除 20 笔同设备异常注册）。"
-    }
-  ];
-
-  // 本地号码池（合并 H5 端写入记录 + 后台预置样本）
   const SEED_TICKETS = [
     {
       recordId: "REC-20261121-001",
@@ -159,8 +217,6 @@
       status: "有效",
       drawStatus: "待开奖",
       kolId: "KOL_Tavares44",
-      isNewRegistration: false,
-      voidReason: "",
       createdAt: "2026-11-21 13:45:12"
     },
     {
@@ -173,60 +229,48 @@
       status: "有效",
       drawStatus: "待开奖",
       kolId: "KOL_Tavares44",
-      isNewRegistration: true,
-      voidReason: "",
       createdAt: "2026-11-20 19:22:08"
-    },
-    {
-      recordId: "REC-20261120-008",
-      accountId: "UID_661092",
-      phone: "13788890011",
-      nickname: "风控样本号",
-      number: "052822",
-      mode: "手动选择号码",
-      status: "作废",
-      drawStatus: "未中奖",
-      kolId: "KOL_MotoBrasil",
-      isNewRegistration: false,
-      voidReason: "同设备高频批量注册，风控判定无效",
-      createdAt: "2026-11-20 11:05:31"
     }
   ];
 
-  let currentRole = "ops";
-  let selectedSettlementId = settlements[0].id;
-  let pendingVoidRecordId = null;
-  let pendingFinContext = null;
+  // 状态
+  let currentSubtab = "active"; // active | closed | stats | categories
+  let selectedTypeChip = "抽奖";
+  let formPrizes = [];
+  let formKols = [];
+  let selectedBannerSrc = "assets/fan-160-hero.jpg";
   let toastTimer = null;
 
   // DOM
-  const roleSelect = document.getElementById("roleSelect");
-  const topbarTitle = document.getElementById("topbarTitle");
-  const adminToast = document.getElementById("adminToast");
-
-  const activityKpis = document.getElementById("activityKpis");
   const activityTableBody = document.getElementById("activityTableBody");
-  const drawStatusDesc = document.getElementById("drawStatusDesc");
-  const drawMetaGrid = document.getElementById("drawMetaGrid");
-  const ticketsTableBody = document.getElementById("ticketsTableBody");
-  const ticketSearchInput = document.getElementById("ticketSearchInput");
-  const ticketStatusFilter = document.getElementById("ticketStatusFilter");
+  const activityTableWrap = document.getElementById("activityTableWrap");
+  const activityFilterToolbar = document.getElementById("activityFilterToolbar");
+  const activityPagination = document.getElementById("activityPagination");
+  const statsSubpanel = document.getElementById("statsSubpanel");
+  const categoriesSubpanel = document.getElementById("categoriesSubpanel");
+  const totalCountText = document.getElementById("totalCountText");
+  const selectedCountText = document.getElementById("selectedCountText");
 
-  const kolTableBody = document.getElementById("kolTableBody");
-  const attributionTableBody = document.getElementById("attributionTableBody");
-  const settlementTableBody = document.getElementById("settlementTableBody");
-  const settlementDetailTitle = document.getElementById("settlementDetailTitle");
-  const settlementDetailSub = document.getElementById("settlementDetailSub");
-  const settlementDetailBody = document.getElementById("settlementDetailBody");
-  const auditLogsBody = document.getElementById("auditLogsBody");
+  const filterCategory = document.getElementById("filterCategory");
+  const filterType = document.getElementById("filterType");
+  const filterKeyword = document.getElementById("filterKeyword");
+  const filterStatus = document.getElementById("filterStatus");
+
+  const prizeRowsContainer = document.getElementById("prizeRowsContainer");
+  const kolChannelsFormList = document.getElementById("kolChannelsFormList");
+  const cfgRuleTextarea = document.getElementById("cfgRuleTextarea");
+  const ruleCharCounter = document.getElementById("ruleCharCounter");
+  const bannerPreviewImg = document.getElementById("bannerPreviewImg");
+  const previewLangBadge = document.getElementById("previewLangBadge");
+  const erpToast = document.getElementById("erpToast");
 
   function showToast(msg) {
-    adminToast.textContent = msg;
-    adminToast.hidden = false;
+    erpToast.textContent = msg;
+    erpToast.hidden = false;
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => {
-      adminToast.hidden = true;
-    }, 2600);
+      erpToast.hidden = true;
+    }, 2500);
   }
 
   function nowStr() {
@@ -237,35 +281,23 @@
     )}:${p(d.getSeconds())}`;
   }
 
-  function addAuditLog(module, action, detail) {
-    auditLogs.unshift({
-      time: nowStr(),
-      role: ROLE_NAMES[currentRole],
-      module,
-      action,
-      detail
-    });
-    renderAuditLogs();
-  }
-
   function loadMergedTickets() {
-    let h5List = [];
+    let h5 = [];
     try {
       const raw = localStorage.getItem(H5_RECORDS_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) h5List = parsed;
+        if (Array.isArray(parsed)) h5 = parsed;
       }
     } catch {
-      h5List = [];
+      h5 = [];
     }
-
-    const byId = new Map();
-    h5List.forEach((r) => byId.set(r.recordId, { ...r, drawStatus: r.drawStatus || "待开奖", voidReason: r.voidReason || "" }));
+    const map = new Map();
+    h5.forEach((r) => map.set(r.recordId, { ...r, drawStatus: r.drawStatus || "待开奖" }));
     SEED_TICKETS.forEach((r) => {
-      if (!byId.has(r.recordId)) byId.set(r.recordId, { ...r });
+      if (!map.has(r.recordId)) map.set(r.recordId, { ...r });
     });
-    return Array.from(byId.values());
+    return Array.from(map.values());
   }
 
   function saveMergedTickets(list) {
@@ -276,693 +308,759 @@
     }
   }
 
-  function getMainActivityIssuedCount() {
-    const mainAct = activities[0];
-    if (mainAct.simulatedFull) return mainAct.total;
-    const all = loadMergedTickets();
-    const validInStorage = all.filter((r) => r.status === "有效").length;
-    const extra = Math.max(0, validInStorage - 2);
-    return Math.min(mainAct.total, BASE_ISSUED + extra);
+  // ===========================
+  // 1. 活动列表表格渲染
+  // ===========================
+  function getStatusClass(st) {
+    if (st === "进行中") return "status-txt--running";
+    if (st === "待开奖") return "status-txt--pending";
+    if (st === "已开奖") return "status-txt--drawn";
+    if (st === "草稿") return "status-txt--draft";
+    return "status-txt--closed";
   }
 
-  // ===========================
-  // Tab 导航
-  // ===========================
-  function switchTab(tab) {
-    document.querySelectorAll(".side-nav-item").forEach((btn) => {
-      btn.classList.toggle("is-active", btn.dataset.tab === tab);
-    });
-    document.querySelectorAll(".admin-section").forEach((sec) => {
-      sec.hidden = sec.id !== `tab-${tab}`;
-    });
-    topbarTitle.textContent = TAB_TITLES[tab] || "站点后台";
-    if (window.location.hash !== `#${tab}`) {
-      history.replaceState(null, "", `#${tab}`);
-    }
-  }
+  function renderActivityTable() {
+    const cat = filterCategory.value;
+    const type = filterType.value;
+    const kw = filterKeyword.value.trim().toLowerCase();
+    const st = filterStatus.value;
 
-  document.querySelectorAll(".side-nav-item").forEach((btn) => {
-    btn.addEventListener("click", () => switchTab(btn.dataset.tab));
-  });
-
-  roleSelect.addEventListener("change", () => {
-    currentRole = roleSelect.value;
-    showToast(`已切换当前后台角色为：${ROLE_NAMES[currentRole]}`);
-  });
-
-  // ===========================
-  // 1. 活动管理渲染
-  // ===========================
-  function renderStatusBadge(status) {
-    const map = {
-      进行中: "badge--green",
-      待开奖: "badge--amber",
-      已开奖: "badge--blue",
-      草稿: "badge--gray",
-      已取消: "badge--red"
-    };
-    return `<span class="badge ${map[status] || "badge--gray"}">${status}</span>`;
-  }
-
-  function renderActivities() {
-    const mainAct = activities[0];
-    const issued = getMainActivityIssuedCount();
-    let pct = Math.floor((issued / mainAct.total) * 100);
-    if (issued < mainAct.total && pct >= 100) pct = 99;
-
-    const totalValidReg = kolChannels.reduce((s, k) => s + k.validReg, 0);
-    const pendingSettleAmt = settlements
-      .filter((s) => s.status !== "已付款")
-      .reduce((sum, s) => sum + s.validCount * s.unitPrice + s.adjustAmount, 0);
-
-    activityKpis.innerHTML = `
-      <div class="kpi-card">
-        <div class="kpi-label">本期有效号码进度（第 202601 期）</div>
-        <div class="kpi-value">${pct}%</div>
-        <div class="kpi-sub">有效 ${issued.toLocaleString()} / ${mainAct.total.toLocaleString()}（未满额不进位）</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">当前活动状态</div>
-        <div class="kpi-value">${mainAct.status}</div>
-        <div class="kpi-sub">规则版本 ${mainAct.ruleVersion}</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">博主累计有效注册</div>
-        <div class="kpi-value">${totalValidReg.toLocaleString()}</div>
-        <div class="kpi-sub">活跃推广渠道 ${kolChannels.filter((k) => k.status === "生效中").length} 个</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">待结算应付金额</div>
-        <div class="kpi-value">$${pendingSettleAmt.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-        <div class="kpi-sub">含待核对与已确认未付款结算单</div>
-      </div>
-    `;
-
-    activityTableBody.innerHTML = activities
-      .map((act, idx) => {
-        const curIssued = idx === 0 ? issued : 0;
-        let curPct = Math.floor((curIssued / act.total) * 100);
-        if (curIssued < act.total && curPct >= 100) curPct = 99;
-        return `
-          <tr>
-            <td>
-              <strong>${act.name}</strong><br/>
-              <span style="color:#64748b;font-size:11.5px;">${act.round} · ${act.id}</span>
-            </td>
-            <td>${act.sponsor}</td>
-            <td><span class="code-chip">${act.range}</span></td>
-            <td>
-              <div class="mini-progress"><i style="width:${curPct}%"></i></div>
-              <span style="font-size:11.5px;color:#475569;">${curPct}% (${curIssued.toLocaleString()} / ${act.total.toLocaleString()})</span>
-            </td>
-            <td style="font-size:11.5px;">${act.startTime}<br/>至 ${act.endTime}</td>
-            <td>${act.ruleVersion}</td>
-            <td>${renderStatusBadge(act.status)}</td>
-            <td>
-              <button type="button" class="btn-link-sm" data-act-jump="${act.id}">查看号码</button>
-              ${
-                act.status === "草稿"
-                  ? `<button type="button" class="btn-link-sm" data-act-publish="${act.id}">发布</button>`
-                  : ""
-              }
-            </td>
-          </tr>
-        `;
-      })
-      .join("");
-
-    activityTableBody.querySelectorAll("[data-act-jump]").forEach((btn) => {
-      btn.addEventListener("click", () => switchTab("tickets"));
-    });
-
-    activityTableBody.querySelectorAll("[data-act-publish]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        if (currentRole !== "ops") {
-          showToast("越权拦截：仅「运营管理员」可执行活动发布操作（PRD R05）");
-          return;
-        }
-        const target = activities.find((a) => a.id === btn.dataset.actPublish);
-        if (!target) return;
-        target.status = "进行中";
-        target.ruleVersion = "v1.0（已冻结）";
-        addAuditLog("活动管理", "发布活动期次", `发布 ${target.round}「${target.name}」，配置已冻结为 v1.0。`);
-        renderActivities();
-        showToast(`${target.round} 已发布上线`);
-      });
-    });
-  }
-
-  function simulateFullAndLock() {
-    if (currentRole !== "ops" && currentRole !== "draw") {
-      showToast("越权拦截：财务角色无权操作号码池锁定（PRD R05）");
-      return;
-    }
-    const mainAct = activities[0];
-    if (mainAct.status === "已开奖") {
-      showToast("本期活动已完成开奖公示");
-      return;
-    }
-    mainAct.simulatedFull = true;
-    mainAct.status = "待开奖";
-    mainAct.lockedAt = nowStr();
-    addAuditLog("号码与开奖", "满额锁定号码池", `第 202601 期有效号码达 100%（100,000/100,000），停止发号并锁定清单进入「待开奖」。`);
-    renderActivities();
-    renderDrawPanel();
-    showToast("第 202601 期已达到 100% 并锁定号码池，进入「待开奖」状态");
-  }
-
-  document.getElementById("simulateFullBtn").addEventListener("click", simulateFullAndLock);
-  document.getElementById("lockPoolFromDrawBtn").addEventListener("click", simulateFullAndLock);
-
-  // 新建活动配置
-  document.getElementById("openCreateActivityBtn").addEventListener("click", () => {
-    if (currentRole !== "ops") {
-      showToast("越权拦截：仅「运营管理员」可新建活动配置（PRD R05）");
-      return;
-    }
-    openModal("activityModal");
-  });
-
-  document.getElementById("activityForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const name = document.getElementById("actName").value.trim();
-    const round = document.getElementById("actRound").value.trim();
-    const sponsor = document.getElementById("actSponsor").value.trim();
-    const total = parseInt(document.getElementById("actTotal").value, 10);
-    const start = document.getElementById("actStart").value;
-    const end = document.getElementById("actEnd").value;
-
-    if (!name || !round || !sponsor || !start || !end) {
-      showToast("请填写全部必填字段");
-      return;
-    }
-    if (new Date(end) <= new Date(start)) {
-      showToast("校验失败：截止时间不得早于或等于开始时间（PRD R05）");
-      return;
-    }
-
-    const newId = `ACT_${Date.now().toString().slice(-6)}`;
-    activities.unshift({
-      id: newId,
-      round,
-      name,
-      sponsor,
-      range: `000001 - ${String(total).padStart(6, "0")}（6位）`,
-      total,
-      simulatedFull: false,
-      startTime: start.replace("T", " "),
-      endTime: end.replace("T", " "),
-      ruleVersion: "v1.0（已冻结）",
-      status: "进行中",
-      lockedAt: "",
-      drawnAt: "",
-      winningNumber: ""
-    });
-
-    addAuditLog("活动管理", "新建并发布活动", `创建 ${round}「${name}」（总量 ${total}），规则版本冻结为 v1.0。`);
-    closeModal("activityModal");
-    renderActivities();
-    showToast(`已发布活动：${round}`);
-  });
-
-  // ===========================
-  // 2. 号码明细与开奖公示渲染
-  // ===========================
-  function renderDrawPanel() {
-    const mainAct = activities[0];
-    const issued = getMainActivityIssuedCount();
-    drawStatusDesc.textContent =
-      mainAct.status === "已开奖"
-        ? `本期已于 ${mainAct.drawnAt} 完成开奖并公示，中奖号码：${mainAct.winningNumber}（重复触发将沿用既有结果）。`
-        : mainAct.status === "待开奖"
-        ? `号码池已于 ${mainAct.lockedAt} 锁定，已满足开奖条件，请切换「开奖授权员」角色执行开奖。`
-        : `当前进度 ${Math.floor((issued / mainAct.total) * 100)}%，未达 100% 满额条件时系统禁止提前开奖（PRD R04）。`;
-
-    drawMetaGrid.innerHTML = `
-      <div class="draw-meta-box"><span>当前期次状态</span><strong>${mainAct.status}</strong></div>
-      <div class="draw-meta-box"><span>冻结规则版本</span><strong>${mainAct.ruleVersion}</strong></div>
-      <div class="draw-meta-box"><span>锁池快照时间</span><strong>${mainAct.lockedAt || "尚未满额锁池"}</strong></div>
-      <div class="draw-meta-box"><span>大奖公示号码</span><strong style="color:#16a34a;">${mainAct.winningNumber || "待开奖"}</strong></div>
-    `;
-  }
-
-  document.getElementById("triggerDrawBtn").addEventListener("click", () => {
-    const mainAct = activities[0];
-    if (currentRole !== "draw") {
-      showToast("越权拦截：仅「开奖授权员」可执行开奖操作（PRD R04/R05）");
-      return;
-    }
-    if (mainAct.status === "已开奖") {
-      showToast(`幂等保护：本期已开奖，沿用既有中奖号码 ${mainAct.winningNumber}`);
-      return;
-    }
-    if (mainAct.status !== "待开奖") {
-      showToast("未达到开奖条件：请先满额锁定号码池进入「待开奖」状态（PRD R04）");
-      return;
-    }
-
-    const list = loadMergedTickets();
-    const validTickets = list.filter((r) => r.status === "有效");
-    const winner = validTickets[0] ? validTickets[0].number : "052818";
-
-    mainAct.status = "已开奖";
-    mainAct.drawnAt = nowStr();
-    mainAct.winningNumber = winner;
-
-    // 同步更新中奖记录的 drawStatus
-    const updated = list.map((r) => {
-      if (r.status !== "有效") return r;
-      return { ...r, drawStatus: r.number === winner ? "已中奖" : "未中奖" };
-    });
-    saveMergedTickets(updated);
-
-    addAuditLog("号码与开奖", "执行开奖并公示", `按规则版本 ${mainAct.ruleVersion} 开奖，大奖号码 ${winner} 已入库并推送前台公示。`);
-    renderActivities();
-    renderDrawPanel();
-    renderTickets();
-    showToast(`开奖成功并已公示！大奖号码：${winner}`);
-  });
-
-  function renderTickets() {
-    const kw = (ticketSearchInput.value || "").trim().toLowerCase();
-    const statusFilter = ticketStatusFilter.value;
-    const list = loadMergedTickets().filter((r) => {
-      if (statusFilter !== "all" && r.status !== statusFilter) return false;
-      if (kw) {
-        const hay = `${r.recordId} ${r.number} ${r.accountId} ${r.phone} ${r.nickname || ""}`.toLowerCase();
-        if (!hay.includes(kw)) return false;
-      }
+    const list = activities.filter((a) => {
+      if (currentSubtab === "active" && a.status === "已关闭") return false;
+      if (currentSubtab === "closed" && a.status !== "已关闭") return false;
+      if (cat && a.category !== cat) return false;
+      if (type && a.type !== type) return false;
+      if (st && a.status !== st) return false;
+      if (kw && !`${a.id} ${a.name}`.toLowerCase().includes(kw)) return false;
       return true;
     });
 
+    totalCountText.textContent = `共 ${list.length} 条`;
+
     if (list.length === 0) {
-      ticketsTableBody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#94a3b8;padding:24px;">暂无符合条件的号码记录</td></tr>`;
+      activityTableBody.innerHTML = `<tr><td colspan="21" style="padding:32px;color:#999;">暂无匹配活动数据</td></tr>`;
       return;
     }
 
-    ticketsTableBody.innerHTML = list
-      .map((r) => {
-        const stCls = r.status === "有效" ? "badge--green" : r.status === "作废" ? "badge--red" : "badge--amber";
-        const drCls =
-          r.drawStatus === "已中奖" ? "badge--green" : r.drawStatus === "未中奖" ? "badge--gray" : "badge--amber";
+    activityTableBody.innerHTML = list
+      .map((a) => {
+        const timeRange = a.endTime ? `${a.startTime}<br/>${a.endTime}` : a.startTime;
+        const showRange = a.showEnd ? `${a.showStart}<br/>${a.showEnd}` : a.showStart;
+        const bannerCell = a.banner
+          ? `<img src="${a.banner}" alt="悬浮图" class="thumb-mini" />`
+          : "-";
+
         return `
-          <tr>
-            <td><span class="code-chip">${r.recordId}</span></td>
-            <td><strong>${r.number}</strong></td>
-            <td>${r.phone}<br/><span style="font-size:11px;color:#64748b;">${r.accountId}</span></td>
-            <td>${r.mode}</td>
-            <td>${r.kolId || "无有效来源"}</td>
-            <td>${r.createdAt}</td>
+          <tr class="${a.isCoreLottery ? "is-featured-row" : ""}">
+            <td><input type="checkbox" class="row-check" data-id="${a.id}" /></td>
+            <td><button type="button" class="link-blue" data-pin="${a.id}">↑ 置顶</button></td>
+            <td>${a.id}</td>
+            <td><button type="button" class="link-blue" data-edit="${a.id}" style="font-weight:${a.isCoreLottery ? 700 : 500};">${a.name}</button></td>
+            <td>${a.category}</td>
+            <td>${a.currency}</td>
+            <td>${a.type}</td>
+            <td>${a.condition}</td>
+            <td>${a.level}</td>
+            <td>${a.vip}</td>
+            <td>${a.tag}</td>
+            <td>${a.audit}</td>
+            <td style="font-size:11px;">${a.terminal}</td>
+            <td>${bannerCell}</td>
+            <td>${a.dispatchMode}</td>
+            <td>${timeRange}</td>
+            <td>${showRange}</td>
+            <td><span class="status-txt ${getStatusClass(a.status)}">${a.status}</span></td>
             <td>
-              <span class="badge ${stCls}">${r.status}</span>
-              ${r.voidReason ? `<div style="font-size:11px;color:#b91c1c;margin-top:3px;">原因：${r.voidReason}</div>` : ""}
+              <div class="ops-cell">
+                <button type="button" class="link-blue" data-edit="${a.id}">修改</button>
+                <button type="button" class="link-blue" data-detail="${a.id}">详情</button>
+                ${
+                  a.type === "抽奖"
+                    ? `<button type="button" class="link-blue" data-settle="${a.id}">结算明细</button>`
+                    : ""
+                }
+                <button type="button" class="link-blue" data-toggle-close="${a.id}">${a.status === "已关闭" ? "重新开启" : "关闭活动"}</button>
+                <button type="button" class="link-blue" data-copy="${a.id}">复制</button>
+              </div>
             </td>
-            <td><span class="badge ${drCls}">${r.drawStatus || "待开奖"}</span></td>
-            <td>
-              ${
-                r.status === "有效"
-                  ? `<button type="button" class="btn-link-sm btn-link-sm--danger" data-void-id="${r.recordId}" data-void-num="${r.number}">作废</button>`
-                  : `<span style="color:#94a3b8;">—</span>`
-              }
-            </td>
+            <td>${a.operator}</td>
+            <td style="white-space:nowrap;">${a.operateTime}</td>
           </tr>
         `;
       })
       .join("");
 
-    ticketsTableBody.querySelectorAll("[data-void-id]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        if (currentRole !== "ops") {
-          showToast("越权拦截：仅「运营管理员」可操作号码作废");
-          return;
-        }
-        pendingVoidRecordId = btn.dataset.voidId;
-        document.getElementById("voidTargetInfo").textContent = `即将作废号码：${btn.dataset.voidNum}（作废后将从活动进度扣除并记录原因）`;
-        document.getElementById("voidReasonInput").value = "";
-        openModal("voidModal");
-      });
+    // 绑定行操作
+    activityTableBody.querySelectorAll("[data-edit]").forEach((btn) => {
+      btn.addEventListener("click", () => openEditActivity(Number(btn.dataset.edit)));
     });
-  }
-
-  document.getElementById("voidForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const reason = document.getElementById("voidReasonInput").value.trim();
-    if (!reason || !pendingVoidRecordId) return;
-
-    const list = loadMergedTickets().map((r) =>
-      r.recordId === pendingVoidRecordId ? { ...r, status: "作废", drawStatus: "未中奖", voidReason: reason } : r
-    );
-    saveMergedTickets(list);
-    addAuditLog("号码与开奖", "作废号码", `记录 ${pendingVoidRecordId} 已标记作废，原因：${reason}`);
-    closeModal("voidModal");
-    renderActivities();
-    renderTickets();
-    showToast("号码已作废并留存原因，进度已同步扣减");
-  });
-
-  ticketSearchInput.addEventListener("input", renderTickets);
-  ticketStatusFilter.addEventListener("change", renderTickets);
-  document.getElementById("refreshTicketsBtn").addEventListener("click", () => {
-    renderActivities();
-    renderTickets();
-    renderAttribution();
-    showToast("已同步最新 H5 端领号与注册记录");
-  });
-
-  // ===========================
-  // 3. 博主渠道与归因渲染 (R06)
-  // ===========================
-  function renderChannels() {
-    const baseUrl = window.location.href.replace(/admin\.html.*$/, "h5.html");
-    kolTableBody.innerHTML = kolChannels
-      .map((k) => {
-        const link = `${baseUrl}?kol=${encodeURIComponent(k.kolId)}`;
-        const isActive = k.status === "生效中";
-        return `
-          <tr>
-            <td><span class="code-chip">${k.kolId}</span></td>
-            <td><strong>${k.name}</strong></td>
-            <td>
-              <a href="h5.html?kol=${encodeURIComponent(k.kolId)}" target="_blank" style="color:#1677ff;font-size:12px;">h5.html?kol=${k.kolId} ↗</a>
-            </td>
-            <td>${k.clicks.toLocaleString()}</td>
-            <td>${k.registered.toLocaleString()}</td>
-            <td><strong>${k.validReg.toLocaleString()}</strong></td>
-            <td><span class="badge ${isActive ? "badge--green" : "badge--gray"}">${k.status}</span></td>
-            <td>
-              <button type="button" class="btn-link-sm" data-copy-link="${link}">复制链接</button>
-              <button type="button" class="btn-link-sm" data-toggle-kol="${k.kolId}">${isActive ? "停用" : "启用"}</button>
-            </td>
-          </tr>
-        `;
-      })
-      .join("");
-
-    kolTableBody.querySelectorAll("[data-copy-link]").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        try {
-          await navigator.clipboard.writeText(btn.dataset.copyLink);
-          showToast("已复制博主专属推广链接");
-        } catch {
-          showToast(`推广链接：${btn.dataset.copyLink}`);
-        }
-      });
+    activityTableBody.querySelectorAll("[data-detail]").forEach((btn) => {
+      btn.addEventListener("click", () => openLotteryDetail(Number(btn.dataset.detail)));
     });
-
-    kolTableBody.querySelectorAll("[data-toggle-kol]").forEach((btn) => {
+    activityTableBody.querySelectorAll("[data-settle]").forEach((btn) => {
+      btn.addEventListener("click", () => openSettlementModal());
+    });
+    activityTableBody.querySelectorAll("[data-toggle-close]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        if (currentRole !== "ops") {
-          showToast("越权拦截：仅「运营管理员」可启停博主渠道");
-          return;
-        }
-        const target = kolChannels.find((k) => k.kolId === btn.dataset.toggleKol);
+        const target = activities.find((x) => x.id === Number(btn.dataset.toggleClose));
         if (!target) return;
-        target.status = target.status === "生效中" ? "已停用" : "生效中";
-        addAuditLog("博主渠道", "变更渠道状态", `博主 ${target.kolId} 状态变更为「${target.status}」。`);
-        renderChannels();
-        renderActivities();
-        showToast(`${target.kolId} 已${target.status}`);
+        target.status = target.status === "已关闭" ? "进行中" : "已关闭";
+        target.operateTime = nowStr();
+        renderActivityTable();
+        showToast(`活动「${target.name}」已${target.status === "已关闭" ? "关闭" : "重新开启"}`);
       });
+    });
+    activityTableBody.querySelectorAll("[data-copy]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const src = activities.find((x) => x.id === Number(btn.dataset.copy));
+        if (!src) return;
+        const clone = {
+          ...src,
+          id: Math.floor(120100 + Math.random() * 899),
+          name: `${src.name}-副本`,
+          status: "草稿",
+          operateTime: nowStr(),
+          isCoreLottery: false
+        };
+        activities.unshift(clone);
+        renderActivityTable();
+        showToast(`已复制生成草稿活动 ID: ${clone.id}`);
+      });
+    });
+    activityTableBody.querySelectorAll("[data-pin]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const idx = activities.findIndex((x) => x.id === Number(btn.dataset.pin));
+        if (idx > 0) {
+          const [item] = activities.splice(idx, 1);
+          activities.unshift(item);
+          renderActivityTable();
+          showToast(`已置顶活动「${item.name}」`);
+        }
+      });
+    });
+    activityTableBody.querySelectorAll(".row-check").forEach((cb) => {
+      cb.addEventListener("change", updateSelectedCount);
     });
   }
 
-  function renderAttribution() {
-    const records = loadMergedTickets();
-    attributionTableBody.innerHTML = records
-      .map((r) => {
-        const isValidNew = Boolean(r.isNewRegistration && r.status === "有效");
-        const badge = isValidNew
-          ? `<span class="badge badge--green">有效新增归因</span>`
-          : r.status === "作废"
-          ? `<span class="badge badge--red">风控排除</span>`
-          : `<span class="badge badge--gray">老账号不计新增</span>`;
-        const reason = isValidNew
-          ? "—"
-          : r.status === "作废"
-          ? r.voidReason || "风控异常账号"
-          : "老账号登录，按 R06 口径不计入新增注册";
-        return `
-          <tr>
-            <td><span class="code-chip">${r.accountId}</span></td>
-            <td>${r.phone}</td>
-            <td>FAN160_2026</td>
-            <td><strong>${r.kolId || "无有效来源"}</strong></td>
-            <td>${r.createdAt}</td>
-            <td>${badge}</td>
-            <td style="color:#64748b;">${reason}</td>
-          </tr>
-        `;
-      })
-      .join("");
+  function updateSelectedCount() {
+    const count = activityTableBody.querySelectorAll(".row-check:checked").length;
+    selectedCountText.textContent = `已选择 ${count} 条数据`;
   }
 
-  document.getElementById("openAddKolBtn").addEventListener("click", () => {
-    if (currentRole !== "ops") {
-      showToast("越权拦截：仅「运营管理员」可新增博主渠道");
-      return;
-    }
-    openModal("kolModal");
-  });
+  function renderStatsSubpanel() {
+    const main = activities.find((a) => a.isCoreLottery) || activities[0];
+    const tickets = loadMergedTickets();
+    const extra = Math.max(0, tickets.filter((t) => t.status === "有效").length - 2);
+    const issued = main.simulatedFull ? main.totalPool : Math.min(main.totalPool, BASE_ISSUED + extra);
+    const totalReg = settlements.reduce((s, x) => s + x.validReg, 0);
+    const totalPay = settlements.reduce((s, x) => s + x.validReg * x.unitRate + x.adjust, 0);
 
-  document.getElementById("kolForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const kolId = document.getElementById("newKolId").value.trim();
-    const name = document.getElementById("newKolName").value.trim();
-    if (!kolId || !name) return;
-    if (kolChannels.some((k) => k.kolId === kolId)) {
-      showToast("该博主标识已存在");
-      return;
-    }
-    kolChannels.unshift({ kolId, name, clicks: 0, registered: 0, validReg: 0, status: "生效中" });
-    addAuditLog("博主渠道", "新增博主渠道", `创建博主 ${kolId}（${name}）并生成专属活动链接。`);
-    closeModal("kolModal");
-    document.getElementById("newKolId").value = "";
-    document.getElementById("newKolName").value = "";
-    renderChannels();
-    renderActivities();
-    showToast(`已创建博主渠道 ${kolId}`);
-  });
-
-  // ===========================
-  // 4. 推广结算对账渲染 (R07)
-  // ===========================
-  function renderSettlements() {
-    settlementTableBody.innerHTML = settlements
-      .map((s) => {
-        const payable = s.validCount * s.unitPrice + s.adjustAmount;
-        const stCls = s.status === "已付款" ? "badge--green" : s.status === "已确认" ? "badge--blue" : "badge--amber";
-        return `
-          <tr>
-            <td><span class="code-chip">${s.id}</span></td>
-            <td><strong>${s.kolId}</strong><br/><span style="font-size:11px;color:#64748b;">${s.activity}</span></td>
-            <td>${s.period}</td>
-            <td>${s.rateVersion}<br/><span style="font-size:11px;color:#64748b;">$${s.unitPrice.toFixed(2)} / 有效注册</span></td>
-            <td><strong>${s.validCount}</strong> <span style="font-size:11px;color:#94a3b8;">(排除 ${s.excludedCount})</span></td>
-            <td style="color:${s.adjustAmount < 0 ? "#dc2626" : "#475569"};">${s.adjustAmount >= 0 ? `+$${s.adjustAmount.toFixed(2)}` : `-$${Math.abs(s.adjustAmount).toFixed(2)}`}</td>
-            <td><strong>$${payable.toFixed(2)} ${s.currency}</strong></td>
-            <td><span class="badge ${stCls}">${s.status}</span></td>
-            <td>
-              <button type="button" class="btn-link-sm" data-set-view="${s.id}">查看明细</button>
-              ${s.status === "待核对" ? `<button type="button" class="btn-link-sm" data-set-confirm="${s.id}">财务确认</button>` : ""}
-              ${s.status === "已确认" ? `<button type="button" class="btn-link-sm" data-set-adjust="${s.id}">调账</button><button type="button" class="btn-link-sm" data-set-pay="${s.id}">登记付款</button>` : ""}
-            </td>
-          </tr>
-        `;
-      })
-      .join("");
-
-    settlementTableBody.querySelectorAll("[data-set-view]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        selectedSettlementId = btn.dataset.setView;
-        renderSettlementDetail();
-      });
-    });
-
-    settlementTableBody.querySelectorAll("[data-set-confirm]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        if (currentRole !== "finance") {
-          showToast("越权拦截：仅「财务审核员」可确认并锁定结算单（PRD R05/R07）");
-          return;
-        }
-        const s = settlements.find((item) => item.id === btn.dataset.setConfirm);
-        if (!s) return;
-        s.status = "已确认";
-        addAuditLog("推广结算", "财务确认结算单", `结算单 ${s.id} 已确认锁定（有效注册 ${s.validCount} 条，费率 ${s.rateVersion}）。`);
-        selectedSettlementId = s.id;
-        renderSettlements();
-        renderSettlementDetail();
-        renderActivities();
-        showToast(`结算单 ${s.id} 已确认锁定`);
-      });
-    });
-
-    settlementTableBody.querySelectorAll("[data-set-adjust]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        if (currentRole !== "finance") {
-          showToast("越权拦截：仅「财务审核员」可登记结算调整记录");
-          return;
-        }
-        pendingFinContext = { type: "adjust", id: btn.dataset.setAdjust };
-        document.getElementById("finModalTitle").textContent = `新增调账记录（${btn.dataset.setAdjust}）`;
-        document.getElementById("finModalFields").innerHTML = `
-          <label class="f-item">
-            <span>调整金额（USD，扣减请填负数，如 -25）*</span>
-            <input type="number" step="0.01" id="finAdjustAmt" required placeholder="-25.00" />
-          </label>
-          <label class="f-item">
-            <span>调整原因 *</span>
-            <input type="text" id="finAdjustReason" required placeholder="例如：事后风控核查剔除异常转化" />
-          </label>
-        `;
-        openModal("financeActionModal");
-      });
-    });
-
-    settlementTableBody.querySelectorAll("[data-set-pay]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        if (currentRole !== "finance") {
-          showToast("越权拦截：仅「财务审核员」可登记付款凭证");
-          return;
-        }
-        pendingFinContext = { type: "pay", id: btn.dataset.setPay };
-        document.getElementById("finModalTitle").textContent = `登记付款凭证（${btn.dataset.setPay}）`;
-        document.getElementById("finModalFields").innerHTML = `
-          <label class="f-item">
-            <span>付款凭证号 / 流水号 *</span>
-            <input type="text" id="finVoucherNo" required placeholder="例如：PAY-USDT-202611210099" />
-          </label>
-        `;
-        openModal("financeActionModal");
-      });
-    });
-  }
-
-  function renderSettlementDetail() {
-    const s = settlements.find((item) => item.id === selectedSettlementId) || settlements[0];
-    if (!s) return;
-    const baseAmt = s.validCount * s.unitPrice;
-    const totalAmt = baseAmt + s.adjustAmount;
-
-    settlementDetailTitle.textContent = `结算单明细：${s.id}（${s.kolId}）`;
-    settlementDetailSub.textContent = `${s.activity} · 周期 ${s.period} · 适用费率版本 ${s.rateVersion}`;
-
-    const adjHtml =
-      s.adjustments.length > 0
-        ? s.adjustments
-            .map((a) => `<li>${a.time}：调整 <strong>${a.amount >= 0 ? `+$${a.amount.toFixed(2)}` : `-$${Math.abs(a.amount).toFixed(2)}`}</strong>（原因：${a.reason}）</li>`)
-            .join("")
-        : `<li>暂无调账记录</li>`;
-
-    settlementDetailBody.innerHTML = `
-      <div class="detail-grid">
-        <div class="detail-kv"><span>基础计费金额</span><strong>$${baseAmt.toFixed(2)} (${s.validCount} × $${s.unitPrice.toFixed(2)})</strong></div>
-        <div class="detail-kv"><span>经审核调整金额</span><strong>${s.adjustAmount >= 0 ? `+$${s.adjustAmount.toFixed(2)}` : `-$${Math.abs(s.adjustAmount).toFixed(2)}`}</strong></div>
-        <div class="detail-kv"><span>最终应付总额</span><strong style="color:#16a34a;">$${totalAmt.toFixed(2)} ${s.currency}</strong></div>
-      </div>
-      <div><strong>付款登记信息：</strong>${s.status === "已付款" ? `已于 ${s.paidAt} 付款，凭证号 <code>${s.voucherNo}</code>` : "尚未付款"}</div>
-      <div style="margin-top:6px;"><strong>调账留痕：</strong><ul style="margin:4px 0 0;padding-left:18px;">${adjHtml}</ul></div>
+    document.getElementById("statsKpiRow").innerHTML = `
+      <div class="stat-card"><span>本期有效号码进度</span><strong>${Math.floor((issued / main.totalPool) * 100)}% (${issued.toLocaleString()}/100,000)</strong></div>
+      <div class="stat-card"><span>累计有效注册数</span><strong>${totalReg.toLocaleString()} 人</strong></div>
+      <div class="stat-card"><span>博主渠道数</span><strong>${(main.kols || []).length} 个</strong></div>
+      <div class="stat-card"><span>累计推广结算金额</span><strong>R$ ${totalPay.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong></div>
     `;
   }
 
-  document.getElementById("financeActionForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    if (!pendingFinContext) return;
-    const s = settlements.find((item) => item.id === pendingFinContext.id);
-    if (!s) return;
-
-    if (pendingFinContext.type === "adjust") {
-      const amt = parseFloat(document.getElementById("finAdjustAmt").value);
-      const reason = document.getElementById("finAdjustReason").value.trim();
-      if (Number.isNaN(amt) || !reason) return;
-      s.adjustAmount += amt;
-      s.adjustments.push({ time: nowStr(), amount: amt, reason });
-      addAuditLog("推广结算", "登记调账记录", `结算单 ${s.id} 调账 $${amt.toFixed(2)}，原因：${reason}`);
-      showToast("调账记录已保存并更新应付总额");
-    } else if (pendingFinContext.type === "pay") {
-      const voucher = document.getElementById("finVoucherNo").value.trim();
-      if (!voucher) return;
-      s.status = "已付款";
-      s.paidAt = nowStr();
-      s.voucherNo = voucher;
-      addAuditLog("推广结算", "登记付款凭证", `结算单 ${s.id} 标记为已付款，凭证号：${voucher}`);
-      showToast(`结算单 ${s.id} 已标记为已付款`);
-    }
-
-    selectedSettlementId = s.id;
-    closeModal("financeActionModal");
-    renderSettlements();
-    renderSettlementDetail();
-    renderActivities();
+  // 子标签切换
+  document.querySelectorAll(".subtab-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      currentSubtab = btn.dataset.subtab;
+      document.querySelectorAll(".subtab-btn").forEach((b) => b.classList.toggle("is-active", b === btn));
+      const isTable = currentSubtab === "active" || currentSubtab === "closed";
+      activityFilterToolbar.hidden = !isTable;
+      activityTableWrap.hidden = !isTable;
+      activityPagination.hidden = !isTable;
+      statsSubpanel.hidden = currentSubtab !== "stats";
+      categoriesSubpanel.hidden = currentSubtab !== "categories";
+      if (isTable) renderActivityTable();
+      if (currentSubtab === "stats") renderStatsSubpanel();
+    });
   });
 
-  document.getElementById("exportCsvBtn").addEventListener("click", () => {
-    const header = ["结算单号", "博主ID", "活动", "周期", "费率版本", "单价", "有效注册数", "调账金额", "应付总额", "状态", "付款凭证号"];
+  document.getElementById("quickSettlementTab").addEventListener("click", () => {
+    document.querySelector('[data-subtab="stats"]').click();
+  });
+
+  // 筛选按钮
+  document.getElementById("searchBtn").addEventListener("click", renderActivityTable);
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    filterCategory.value = "";
+    filterType.value = "";
+    filterKeyword.value = "";
+    filterStatus.value = "";
+    renderActivityTable();
+  });
+  document.getElementById("refreshAllBtn").addEventListener("click", () => {
+    renderActivityTable();
+    showToast("已刷新活动列表与 H5 领号数据");
+  });
+
+  // 全选联动
+  ["selectAllCheckbox", "selectAllBottom"].forEach((id) => {
+    document.getElementById(id).addEventListener("change", (e) => {
+      const checked = e.target.checked;
+      document.getElementById("selectAllCheckbox").checked = checked;
+      document.getElementById("selectAllBottom").checked = checked;
+      activityTableBody.querySelectorAll(".row-check").forEach((cb) => (cb.checked = checked));
+      updateSelectedCount();
+    });
+  });
+
+  // ===========================
+  // 2. 双栏「新增活动 / 修改活动」弹窗逻辑
+  // ===========================
+  function renderPrizeRows() {
+    prizeRowsContainer.innerHTML = formPrizes
+      .map(
+        (p, idx) => `
+          <div class="prize-row-item">
+            <input type="text" class="erp-input" value="${p.name}" data-prize-field="name" data-idx="${idx}" placeholder="奖项名称" />
+            <input type="text" class="erp-input" value="${p.content}" data-prize-field="content" data-idx="${idx}" placeholder="奖品描述 / 金额" />
+            <input type="number" class="erp-input" value="${p.qty}" min="1" data-prize-field="qty" data-idx="${idx}" />
+            <div class="prize-row-ops">
+              ${
+                idx === formPrizes.length - 1
+                  ? `<button type="button" class="btn-mini-sq btn-mini-sq--blue" id="addPrizeRowBtn" title="添加奖项">+</button>`
+                  : ""
+              }
+              <button type="button" class="btn-mini-sq" data-del-prize="${idx}" title="删除">×</button>
+            </div>
+          </div>
+        `
+      )
+      .join("");
+
+    prizeRowsContainer.querySelectorAll("[data-prize-field]").forEach((inp) => {
+      inp.addEventListener("input", () => {
+        const i = Number(inp.dataset.idx);
+        formPrizes[i][inp.dataset.prizeField] = inp.dataset.prizeField === "qty" ? Number(inp.value) || 1 : inp.value;
+      });
+    });
+
+    const addBtn = document.getElementById("addPrizeRowBtn");
+    if (addBtn) {
+      addBtn.addEventListener("click", () => {
+        formPrizes.push({ name: `${formPrizes.length + 1}等奖`, content: "", qty: 1 });
+        renderPrizeRows();
+      });
+    }
+
+    prizeRowsContainer.querySelectorAll("[data-del-prize]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (formPrizes.length <= 1) {
+          showToast("至少保留 1 个奖项配置");
+          return;
+        }
+        formPrizes.splice(Number(btn.dataset.delPrize), 1);
+        renderPrizeRows();
+      });
+    });
+  }
+
+  function renderKolFormRows() {
+    const actIdLabel = document.getElementById("editingActivityId").value || "{活动ID}";
+    kolChannelsFormList.innerHTML = formKols
+      .map(
+        (k, idx) => `
+          <div class="kol-form-card">
+            <div class="kol-card-top">
+              <input type="text" class="erp-input" value="${k.code}" data-kol-field="code" data-idx="${idx}" placeholder="博主标识" />
+              <input type="text" class="erp-input" value="${k.name}" data-kol-field="name" data-idx="${idx}" placeholder="展示名称" />
+              <div class="inline-radios" style="gap:8px;">
+                <label><input type="radio" name="kolSt_${idx}" value="启用" ${k.status === "启用" ? "checked" : ""} data-kol-status="${idx}" /> 启用</label>
+                <label><input type="radio" name="kolSt_${idx}" value="停用" ${k.status === "停用" ? "checked" : ""} data-kol-status="${idx}" /> 停用</label>
+              </div>
+              <button type="button" class="link-danger" data-del-kol="${idx}">删除</button>
+            </div>
+            <div class="kol-sub-line">
+              <span>专属链接</span>
+              <input type="text" class="erp-input" readonly value="https://dztz2026.github.io/fan-160-cn-prototype/h5.html?act=${actIdLabel}&kol=${k.code}" />
+            </div>
+            <div class="kol-sub-line">
+              <span>生效时间</span>
+              <div class="range-row">
+                <input type="date" class="erp-input" value="${k.start}" data-kol-field="start" data-idx="${idx}" />
+                <span class="range-arrow">→</span>
+                <input type="date" class="erp-input" value="${k.end}" data-kol-field="end" data-idx="${idx}" />
+              </div>
+            </div>
+          </div>
+        `
+      )
+      .join("");
+
+    kolChannelsFormList.querySelectorAll("[data-kol-field]").forEach((inp) => {
+      inp.addEventListener("input", () => {
+        const i = Number(inp.dataset.idx);
+        formKols[i][inp.dataset.kolField] = inp.value;
+        if (inp.dataset.kolField === "code") {
+          const linkInput = inp.closest(".kol-form-card").querySelector("input[readonly]");
+          if (linkInput) {
+            linkInput.value = `https://dztz2026.github.io/fan-160-cn-prototype/h5.html?act=${actIdLabel}&kol=${inp.value}`;
+          }
+        }
+      });
+    });
+
+    kolChannelsFormList.querySelectorAll("[data-kol-status]").forEach((rad) => {
+      rad.addEventListener("change", () => {
+        formKols[Number(rad.dataset.kolStatus)].status = rad.value;
+      });
+    });
+
+    kolChannelsFormList.querySelectorAll("[data-del-kol]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (formKols.length <= 1) {
+          showToast("至少保留 1 条博主渠道配置");
+          return;
+        }
+        formKols.splice(Number(btn.dataset.delKol), 1);
+        renderKolFormRows();
+      });
+    });
+  }
+
+  document.getElementById("addKolRowBtn").addEventListener("click", () => {
+    const nextNum = String(formKols.length + 1).padStart(4, "0");
+    formKols.push({
+      code: `B${nextNum}`,
+      name: "",
+      status: "启用",
+      start: "2026-11-18",
+      end: "2026-12-18"
+    });
+    renderKolFormRows();
+  });
+
+  // 活动类型芯片选择
+  document.querySelectorAll("#activityTypeGrid .type-chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      document.querySelectorAll("#activityTypeGrid .type-chip").forEach((c) => c.classList.remove("is-active"));
+      chip.classList.add("is-active");
+      selectedTypeChip = chip.dataset.type;
+    });
+  });
+
+  // 展示时间与活动时间保持一致
+  const cfgSyncDisplayTime = document.getElementById("cfgSyncDisplayTime");
+  function syncDisplayDates() {
+    if (!cfgSyncDisplayTime.checked) return;
+    document.getElementById("cfgShowStart").value = document.getElementById("cfgStartDate").value;
+    document.getElementById("cfgShowEnd").value = document.getElementById("cfgEndDate").value;
+  }
+  cfgSyncDisplayTime.addEventListener("change", syncDisplayDates);
+  document.getElementById("cfgStartDate").addEventListener("change", syncDisplayDates);
+  document.getElementById("cfgEndDate").addEventListener("change", syncDisplayDates);
+
+  // 宣传图缩略图切换 & 上传
+  document.querySelectorAll("#bannerGallery .banner-thumb").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#bannerGallery .banner-thumb").forEach((b) => b.classList.remove("is-selected"));
+      btn.classList.add("is-selected");
+      const val = btn.dataset.banner;
+      if (val.startsWith("assets/")) {
+        selectedBannerSrc = val;
+        bannerPreviewImg.src = val;
+        bannerPreviewImg.hidden = false;
+      } else {
+        selectedBannerSrc = "assets/fan-160-hero.jpg";
+        bannerPreviewImg.src = "assets/fan-160-hero.jpg";
+        showToast(`已切换预览模板：${btn.dataset.title}`);
+      }
+    });
+  });
+
+  document.getElementById("uploadDropzone").addEventListener("click", (e) => {
+    if (e.target.id === "clearBannerBtn") return;
+    document.getElementById("bannerFileInput").click();
+  });
+
+  document.getElementById("bannerFileInput").addEventListener("change", (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      selectedBannerSrc = reader.result;
+      bannerPreviewImg.src = reader.result;
+      showToast(`已上传宣传图：${file.name}`);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById("clearBannerBtn").addEventListener("click", (e) => {
+    e.stopPropagation();
+    showToast("已恢复默认主视觉宣传图");
+    selectedBannerSrc = "assets/fan-160-hero.jpg";
+    bannerPreviewImg.src = selectedBannerSrc;
+  });
+
+  document.getElementById("toggleGalleryBtn").addEventListener("click", (e) => {
+    const gal = document.getElementById("bannerGallery");
+    gal.hidden = !gal.hidden;
+    e.target.textContent = gal.hidden ? "展开" : "收起";
+  });
+
+  document.querySelectorAll("#previewLangTabs .preview-lang-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll("#previewLangTabs .preview-lang-btn").forEach((b) => b.classList.remove("is-active"));
+      btn.classList.add("is-active");
+      previewLangBadge.textContent = `${btn.dataset.plang}预览`;
+    });
+  });
+
+  // 规则字数统计
+  function updateRuleCounter() {
+    ruleCharCounter.textContent = `${cfgRuleTextarea.value.length} / 10000`;
+  }
+  cfgRuleTextarea.addEventListener("input", updateRuleCounter);
+
+  // 打开新增活动
+  function openCreateActivity() {
+    document.getElementById("createModalTitle").textContent = "新增活动";
+    document.getElementById("editingActivityId").value = "";
+    document.getElementById("cfgActName").value = "";
+    document.getElementById("cfgRound").value = "第1期";
+    document.getElementById("cfgSponsor").value = "塔瓦雷斯活动方";
+    document.getElementById("cfgUnitRate").value = "12.50";
+    formPrizes = [
+      { name: "一等奖", content: "", qty: 1 },
+      { name: "2等奖", content: "", qty: 1 },
+      { name: "3等奖", content: "", qty: 1 }
+    ];
+    formKols = [{ code: "B0001", name: "", status: "启用", start: "2026-11-18", end: "2026-12-18" }];
+    renderPrizeRows();
+    renderKolFormRows();
+    updateRuleCounter();
+    openModal("createActivityModal");
+  }
+
+  // 打开修改活动
+  function openEditActivity(id) {
+    const act = activities.find((a) => a.id === id);
+    if (!act) return;
+    document.getElementById("createModalTitle").textContent = `修改活动（ID: ${act.id}）`;
+    document.getElementById("editingActivityId").value = String(act.id);
+    document.getElementById("cfgActName").value = act.name;
+    document.getElementById("cfgRound").value = act.round || "第1期";
+    document.getElementById("cfgSponsor").value = act.sponsor || "塔瓦雷斯活动方";
+    document.getElementById("cfgUnitRate").value = act.unitRate ? act.unitRate.toFixed(2) : "12.50";
+    formPrizes = act.prizes
+      ? act.prizes.map((p) => ({ ...p }))
+      : [
+          { name: "一等奖", content: "2025款 本田 Fan 160 摩托车", qty: 1 },
+          { name: "2等奖", content: "现金幸运奖 ¥500", qty: 8 },
+          { name: "3等奖", content: "平台彩金", qty: 10 }
+        ];
+    formKols = act.kols
+      ? act.kols.map((k) => ({ ...k }))
+      : [{ code: "B0001", name: "Tavares 44 官方主号", status: "启用", start: "2026-11-18", end: "2026-12-18" }];
+    renderPrizeRows();
+    renderKolFormRows();
+    updateRuleCounter();
+    openModal("createActivityModal");
+  }
+
+  function saveActivity(targetStatus) {
+    const name = document.getElementById("cfgActName").value.trim();
+    const round = document.getElementById("cfgRound").value.trim();
+    const sponsor = document.getElementById("cfgSponsor").value.trim();
+    const start = document.getElementById("cfgStartDate").value;
+    const end = document.getElementById("cfgEndDate").value;
+    const isPerm = document.getElementById("cfgActPermanent").checked;
+
+    if (!name) {
+      showToast("请输入活动名称");
+      document.getElementById("cfgActName").focus();
+      return;
+    }
+    if (!isPerm && start && end && end < start) {
+      showToast("活动结束时间不得早于开始时间");
+      return;
+    }
+
+    const formType = (document.querySelector('input[name="actFormType"]:checked') || {}).value || "站外抽奖";
+    const eligibility = (document.querySelector('input[name="cfgEligibility"]:checked') || {}).value || "需登录平台账号";
+    const drawMode = (document.querySelector('input[name="cfgDrawMode"]:checked') || {}).value || "人工触发开奖";
+    const editId = document.getElementById("editingActivityId").value;
+
+    if (editId) {
+      const target = activities.find((a) => a.id === Number(editId));
+      if (target) {
+        target.name = name;
+        target.round = round;
+        target.sponsor = sponsor;
+        target.type = selectedTypeChip;
+        target.formType = formType;
+        target.category = formType;
+        target.condition = `${eligibility} · 免费领号`;
+        target.dispatchMode = drawMode;
+        target.startTime = isPerm ? "不限" : start;
+        target.endTime = isPerm ? "" : end;
+        target.status = targetStatus;
+        target.banner = selectedBannerSrc;
+        target.prizes = formPrizes.map((p) => ({ ...p }));
+        target.kols = formKols.map((k) => ({ ...k }));
+        target.operateTime = nowStr();
+      }
+      showToast(`活动「${name}」已${targetStatus === "进行中" ? "立即发布" : "保存为草稿"}`);
+    } else {
+      const newAct = {
+        id: Math.floor(120100 + Math.random() * 899),
+        name,
+        category: formType,
+        currency: "BRL",
+        type: selectedTypeChip,
+        formType,
+        condition: `${eligibility} · 免费领号`,
+        level: "不限制",
+        vip: "不限制",
+        tag: "不限制",
+        audit: "1.00",
+        terminal: "H5_WEB(活动落地页), Android_APP, ...",
+        banner: selectedBannerSrc,
+        dispatchMode: drawMode,
+        startTime: isPerm ? "不限" : start,
+        endTime: isPerm ? "" : end,
+        showStart: isPerm ? "不限" : document.getElementById("cfgShowStart").value,
+        showEnd: isPerm ? "" : document.getElementById("cfgShowEnd").value,
+        status: targetStatus,
+        operator: "Cooper",
+        operateTime: nowStr(),
+        round,
+        sponsor,
+        totalPool: 100000,
+        prizes: formPrizes.map((p) => ({ ...p })),
+        kols: formKols.map((k) => ({ ...k })),
+        unitRate: parseFloat(document.getElementById("cfgUnitRate").value) || 0,
+        isCoreLottery: true
+      };
+      activities.unshift(newAct);
+      showToast(`已新增活动「${name}」（状态：${targetStatus}）`);
+    }
+
+    closeModal("createActivityModal");
+    renderActivityTable();
+  }
+
+  document.getElementById("openCreateActivityBtn").addEventListener("click", openCreateActivity);
+  document.getElementById("publishActivityBtn").addEventListener("click", () => saveActivity("进行中"));
+  document.getElementById("createActivityForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    saveActivity("草稿");
+  });
+
+  // ===========================
+  // 3. 活动详情：号码池与开奖管理弹窗（联动 H5）
+  // ===========================
+  function openLotteryDetail(actId) {
+    const act = activities.find((a) => a.id === actId) || activities[0];
+    document.getElementById("detailModalTitle").textContent = `活动详情 · ${act.name}（ID: ${act.id}）`;
+    renderDetailTickets(act);
+    openModal("lotteryDetailModal");
+  }
+
+  function renderDetailTickets(act = activities[0]) {
+    const all = loadMergedTickets();
+    const extra = Math.max(0, all.filter((t) => t.status === "有效").length - 2);
+    const total = act.totalPool || 100000;
+    const issued = act.simulatedFull ? total : Math.min(total, BASE_ISSUED + extra);
+    let pct = Math.floor((issued / total) * 100);
+    if (issued < total && pct >= 100) pct = 99;
+
+    document.getElementById("detailSummaryBar").innerHTML = `
+      <div class="detail-sum-box"><span>当前活动状态</span><strong>${act.status}</strong></div>
+      <div class="detail-sum-box"><span>有效号码进度</span><strong>${pct}% (${issued.toLocaleString()} / ${total.toLocaleString()})</strong></div>
+      <div class="detail-sum-box"><span>开奖方式</span><strong>${act.dispatchMode || "人工触发开奖"}</strong></div>
+      <div class="detail-sum-box"><span>大奖公示号码</span><strong style="color:#52c41a;">${act.winningNumber || "待开奖"}</strong></div>
+    `;
+
+    const kw = (document.getElementById("detailTicketSearch").value || "").trim().toLowerCase();
+    const st = document.getElementById("detailTicketStatus").value;
+    const filtered = all.filter((r) => {
+      if (st !== "all" && r.status !== st) return false;
+      if (kw && !`${r.number} ${r.phone} ${r.accountId}`.toLowerCase().includes(kw)) return false;
+      return true;
+    });
+
+    document.getElementById("detailTicketsBody").innerHTML = filtered
+      .map(
+        (r) => `
+          <tr>
+            <td>${r.recordId}</td>
+            <td><strong>${r.number}</strong></td>
+            <td>${r.phone}</td>
+            <td>${r.accountId}</td>
+            <td>${r.mode}</td>
+            <td>${r.kolId || "B0001"}</td>
+            <td>${r.createdAt}</td>
+            <td><span class="status-txt ${r.status === "有效" ? "status-txt--running" : "status-txt--closed"}">${r.status}</span></td>
+            <td>${r.drawStatus || "待开奖"}</td>
+            <td>
+              ${
+                r.status === "有效"
+                  ? `<button type="button" class="link-danger" data-void-rec="${r.recordId}">作废</button>`
+                  : "-"
+              }
+            </td>
+          </tr>
+        `
+      )
+      .join("");
+
+    document.getElementById("detailTicketsBody").querySelectorAll("[data-void-rec]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const updated = loadMergedTickets().map((r) =>
+          r.recordId === btn.dataset.voidRec ? { ...r, status: "作废", drawStatus: "未中奖" } : r
+        );
+        saveMergedTickets(updated);
+        renderDetailTickets(act);
+        showToast("已作废该号码并扣减有效进度");
+      });
+    });
+  }
+
+  document.getElementById("openLotteryDetailTopBtn").addEventListener("click", () => openLotteryDetail(activities[0].id));
+  document.getElementById("detailTicketSearch").addEventListener("input", () => renderDetailTickets(activities[0]));
+  document.getElementById("detailTicketStatus").addEventListener("change", () => renderDetailTickets(activities[0]));
+
+  document.getElementById("detailLockPoolBtn").addEventListener("click", () => {
+    const main = activities[0];
+    main.simulatedFull = true;
+    main.status = "待开奖";
+    renderActivityTable();
+    renderDetailTickets(main);
+    showToast("已模拟达到 100% 满额，停止发号并进入「待开奖」");
+  });
+
+  document.getElementById("detailTriggerDrawBtn").addEventListener("click", () => {
+    const main = activities[0];
+    if (main.status !== "待开奖" && main.status !== "已开奖") {
+      showToast("未达到满额开奖条件，请先点击「模拟满额锁池 (100%)」");
+      return;
+    }
+    if (main.status === "已开奖") {
+      showToast(`本期已开奖，沿用公示号码 ${main.winningNumber}`);
+      return;
+    }
+    const list = loadMergedTickets();
+    const valid = list.filter((r) => r.status === "有效");
+    const winNum = valid[0] ? valid[0].number : "052818";
+    main.status = "已开奖";
+    main.winningNumber = winNum;
+    saveMergedTickets(list.map((r) => (r.status === "有效" ? { ...r, drawStatus: r.number === winNum ? "已中奖" : "未中奖" } : r)));
+    renderActivityTable();
+    renderDetailTickets(main);
+    showToast(`开奖成功并已前台公示！中奖号码：${winNum}`);
+  });
+
+  // ===========================
+  // 4. 博主推广结算明细弹窗（PRD R07）
+  // ===========================
+  function openSettlementModal() {
+    renderSettlementRows();
+    openModal("settlementModal");
+  }
+
+  function renderSettlementRows() {
+    document.getElementById("settlementModalBody").innerHTML = settlements
+      .map((s) => {
+        const total = s.validReg * s.unitRate + s.adjust;
+        const cls = s.status === "已付款" ? "status-txt--running" : s.status === "已确认" ? "status-txt--drawn" : "status-txt--pending";
+        return `
+          <tr>
+            <td>${s.id}</td>
+            <td><strong>${s.kolCode}</strong><br/><span style="color:#888;">${s.kolName}</span></td>
+            <td>${s.period}</td>
+            <td>${s.rateVer}<br/>R$ ${s.unitRate.toFixed(2)}</td>
+            <td><strong>${s.validReg}</strong></td>
+            <td>${s.excluded}</td>
+            <td style="color:${s.adjust < 0 ? "#ff4d4f" : "#333"};">${s.adjust >= 0 ? `+R$ ${s.adjust.toFixed(2)}` : `-R$ ${Math.abs(s.adjust).toFixed(2)}`}</td>
+            <td><strong>R$ ${total.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong></td>
+            <td><span class="status-txt ${cls}">${s.status}</span>${s.voucher ? `<br/><span style="font-size:10px;color:#888;">${s.voucher}</span>` : ""}</td>
+            <td>
+              ${s.status === "待核对" ? `<button type="button" class="link-blue" data-set-confirm="${s.id}">财务确认</button>` : ""}
+              ${s.status === "已确认" ? `<button type="button" class="link-blue" data-set-pay="${s.id}">登记付款</button>` : ""}
+              ${s.status === "已付款" ? `<span style="color:#999;">已完结</span>` : ""}
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    document.getElementById("settlementModalBody").querySelectorAll("[data-set-confirm]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const s = settlements.find((x) => x.id === btn.dataset.setConfirm);
+        if (!s) return;
+        s.status = "已确认";
+        renderSettlementRows();
+        showToast(`结算单 ${s.id} 已确认锁定明细与费率版本`);
+      });
+    });
+
+    document.getElementById("settlementModalBody").querySelectorAll("[data-set-pay]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const s = settlements.find((x) => x.id === btn.dataset.setPay);
+        if (!s) return;
+        s.status = "已付款";
+        s.voucher = `PIX-${Date.now().toString().slice(-8)}`;
+        renderSettlementRows();
+        showToast(`结算单 ${s.id} 已登记付款凭证 ${s.voucher}`);
+      });
+    });
+  }
+
+  document.getElementById("openSettlementFromModalBtn").addEventListener("click", openSettlementModal);
+  document.getElementById("openSettlementFromStatsBtn").addEventListener("click", openSettlementModal);
+  document.getElementById("exportSettlementCsvBtn").addEventListener("click", () => {
+    const header = ["结算单号", "博主标识", "博主名称", "周期", "费率版本", "单价(BRL)", "有效注册", "调账", "应付总额(BRL)", "状态", "付款凭证"];
     const rows = settlements.map((s) => [
       s.id,
-      s.kolId,
-      s.activity,
+      s.kolCode,
+      s.kolName,
       s.period,
-      s.rateVersion,
-      s.unitPrice.toFixed(2),
-      s.validCount,
-      s.adjustAmount.toFixed(2),
-      (s.validCount * s.unitPrice + s.adjustAmount).toFixed(2),
+      s.rateVer,
+      s.unitRate.toFixed(2),
+      s.validReg,
+      s.adjust.toFixed(2),
+      (s.validReg * s.unitRate + s.adjust).toFixed(2),
       s.status,
-      s.voucherNo || ""
+      s.voucher
     ]);
     const csv = "\uFEFF" + [header, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "包网博主推广结算对账单.csv";
+    a.download = "巴西站-站外抽奖博主结算明细.csv";
     a.click();
     URL.revokeObjectURL(a.href);
-    showToast("已导出 CSV 对账单");
+    showToast("已导出 CSV 结算对账单");
   });
 
-  // ===========================
-  // 5. 审计日志渲染
-  // ===========================
-  function renderAuditLogs() {
-    auditLogsBody.innerHTML = auditLogs
-      .map(
-        (l) => `
-          <tr>
-            <td style="white-space:nowrap;">${l.time}</td>
-            <td><span class="badge badge--blue">${l.role}</span></td>
-            <td>${l.module}</td>
-            <td><strong>${l.action}</strong></td>
-            <td>${l.detail}</td>
-          </tr>
-        `
-      )
-      .join("");
-  }
+  // 其他轻量交互按钮
+  document.getElementById("openGlobalSettingsBtn").addEventListener("click", () => {
+    showToast("活动全局设置：默认归因窗口 7 天，满额自动锁池");
+  });
+  document.getElementById("openTutorialBtn").addEventListener("click", () => {
+    showToast("操作提示：点击「+ 新增活动」可查看完整的站外编号抽奖双栏配置表单");
+  });
+  document.querySelectorAll("[data-tip]").forEach((btn) => {
+    btn.addEventListener("click", () => showToast(btn.dataset.tip));
+  });
 
-  // 通用弹窗开关
+  // 弹窗开关
   function openModal(id) {
     document.getElementById(id).hidden = false;
   }
   function closeModal(id) {
     document.getElementById(id).hidden = true;
   }
-
-  document.querySelectorAll("[data-close]").forEach((btn) => {
-    btn.addEventListener("click", () => closeModal(btn.dataset.close));
+  document.querySelectorAll("[data-close-modal]").forEach((btn) => {
+    btn.addEventListener("click", () => closeModal(btn.dataset.closeModal));
   });
 
-  // 初始化路由（支持 #activities / #tickets / #channels / #settlement / #logs）
-  const initHash = (window.location.hash || "").replace("#", "");
-  if (TAB_TITLES[initHash]) {
-    switchTab(initHash);
-  }
-
-  renderActivities();
-  renderDrawPanel();
-  renderTickets();
-  renderChannels();
-  renderAttribution();
-  renderSettlements();
-  renderSettlementDetail();
-  renderAuditLogs();
+  // 初始化
+  renderActivityTable();
 })();
