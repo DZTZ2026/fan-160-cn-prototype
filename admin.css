@@ -937,6 +937,8 @@ textarea {
   gap: 5px;
   cursor: pointer;
   color: #333333;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .inline-radios input[type="radio"],
