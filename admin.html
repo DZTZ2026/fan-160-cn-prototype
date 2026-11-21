@@ -42,7 +42,13 @@
       <div class="erp-stat-item"><span class="stat-ico">💳</span><span>出款</span><em class="mini-num">99+</em></div>
       <div class="erp-stat-item"><span class="stat-ico">💬</span><span>消息</span><em class="mini-num">99+</em></div>
       <div class="erp-stat-item"><span class="stat-ico">❓</span><span>教程</span></div>
-      <div class="erp-user-menu">Cooper ▾</div>
+      <div class="erp-role-box" title="切换角色验证 PRD R05 权限控制">
+        <select id="erpRoleSelect" class="erp-role-select" aria-label="切换操作角色">
+          <option value="ops">Cooper（运营管理员）</option>
+          <option value="draw">Alice（开奖授权员）</option>
+          <option value="finance">Bob（财务审核员）</option>
+        </select>
+      </div>
     </div>
   </header>
 
@@ -76,6 +82,7 @@
           <button type="button" class="subtab-btn" data-subtab="closed">已关闭活动</button>
           <button type="button" class="subtab-btn" data-subtab="stats">优惠统计</button>
           <button type="button" class="subtab-btn" data-subtab="categories">分类管理</button>
+          <button type="button" class="subtab-btn" data-subtab="logs">操作日志</button>
         </div>
         <button type="button" class="tutorial-link" id="openTutorialBtn">📖 操作教程</button>
       </div>
@@ -192,6 +199,27 @@
         </div>
       </div>
 
+      <!-- 操作审计日志子面板（PRD R05） -->
+      <div class="subpanel-box" id="logsSubpanel" hidden>
+        <div class="subpanel-head">
+          <h3>后台操作审计日志（PRD R05：发布、配置变更、作废、开奖、结算与付款全留痕）</h3>
+        </div>
+        <div class="erp-table-wrap">
+          <table class="erp-table erp-table--compact">
+            <thead>
+              <tr>
+                <th style="width:160px;">操作时间</th>
+                <th style="width:150px;">操作人 / 角色</th>
+                <th style="width:110px;">模块</th>
+                <th style="width:140px;">动作</th>
+                <th>操作详情与原因留痕</th>
+              </tr>
+            </thead>
+            <tbody id="auditLogTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- 底部分页栏 -->
       <div class="erp-pagination" id="activityPagination">
         <div class="pagi-left">
@@ -228,6 +256,10 @@
 
       <form id="createActivityForm" class="erp-modal-body">
         <input type="hidden" id="editingActivityId" value="" />
+        <!-- PRD R05：已发布活动规则版本冻结警示条 -->
+        <div class="freeze-notice-bar" id="freezeNoticeBar" hidden>
+          🔒 <strong>规则版本已冻结（PRD R05）</strong>：本期活动已发布上线，影响参与资格、号码范围、发放方式与开奖规则的核心字段已自动锁定；仅允许调整非核心展示项或新增/启停博主渠道，所有变更将记入操作审计日志。
+        </div>
         <div class="dual-col-layout">
           <!-- ========== 左栏：基础配置 + 抽奖规则 + 博主渠道 + 结算配置 ========== -->
           <div class="form-col-left">
@@ -355,29 +387,41 @@
             <div class="form-row">
               <label class="f-label"><i class="req">*</i> 号码范围 <span class="help-q" title="连续号码范围及前台展示位数，发布后冻结">?</span></label>
               <div class="f-control inline-num-range">
-                <input type="text" id="cfgNumStart" class="erp-input w-100" value="000001" />
+                <input type="text" id="cfgNumStart" class="erp-input w-100" data-freeze-field value="000001" />
                 <span>至</span>
-                <input type="text" id="cfgNumEnd" class="erp-input w-100" value="100000" />
+                <input type="text" id="cfgNumEnd" class="erp-input w-100" data-freeze-field value="100000" />
                 <span style="margin-left:8px;">展示位数</span>
-                <input type="number" id="cfgNumDigits" class="erp-input w-64" value="6" min="4" max="8" />
+                <input type="number" id="cfgNumDigits" class="erp-input w-64" data-freeze-field value="6" min="4" max="8" />
               </div>
             </div>
 
-            <!-- 发放方式 -->
+            <!-- 发放方式（PRD R02：支持多选，与 H5 双模式一致） -->
             <div class="form-row">
-              <label class="f-label"><i class="req">*</i> 发放方式 <span class="help-q" title="支持系统自动分配或用户自选号码">?</span></label>
+              <label class="f-label"><i class="req">*</i> 发放方式 <span class="help-q" title="可同时勾选系统自动分配与用户自选号码，发布后冻结">?</span></label>
               <div class="f-control inline-radios">
-                <label><input type="radio" name="cfgIssueMode" value="系统自动分配" checked /> 系统自动分配</label>
-                <label><input type="radio" name="cfgIssueMode" value="用户自选号码" /> 用户自选号码</label>
+                <label><input type="checkbox" name="cfgIssueMode" value="用户自选号码" data-freeze-field checked /> 用户自选号码</label>
+                <label><input type="checkbox" name="cfgIssueMode" value="系统自动分配" data-freeze-field checked /> 系统自动分配</label>
               </div>
             </div>
 
-            <!-- 单人上限 -->
+            <!-- 发放上限（PRD R02：单次上限 + 单人上限） -->
             <div class="form-row">
-              <label class="f-label"><i class="req">*</i> 单人上限</label>
+              <label class="f-label"><i class="req">*</i> 发放上限 <span class="help-q" title="同时限制单次领取与单人单期累计有效号码上限">?</span></label>
               <div class="f-control inline-num-range">
-                <input type="number" id="cfgUserLimit" class="erp-input w-80" value="1" min="1" />
-                <span>个有效号码 / 人 / 期</span>
+                <span>单次</span>
+                <input type="number" id="cfgPerClaimLimit" class="erp-input w-64" data-freeze-field value="1" min="1" />
+                <span>个，单人每期</span>
+                <input type="number" id="cfgUserLimit" class="erp-input w-64" data-freeze-field value="1" min="1" />
+                <span>个有效号码</span>
+              </div>
+            </div>
+
+            <!-- 锁池前作废号码处理（PRD R02） -->
+            <div class="form-row">
+              <label class="f-label"><i class="req">*</i> 作废回池 <span class="help-q" title="满额锁池前，被风控作废的号码是否回池可重新发放">?</span></label>
+              <div class="f-control inline-radios">
+                <label><input type="radio" name="cfgVoidRecycle" value="锁池前回池" data-freeze-field checked /> 锁池前回池可再发放</label>
+                <label><input type="radio" name="cfgVoidRecycle" value="作废不回池" data-freeze-field /> 作废不回池（仅扣进度）</label>
               </div>
             </div>
 
@@ -385,20 +429,35 @@
             <div class="form-row">
               <label class="f-label"><i class="req">*</i> 参与资格 <span class="help-q" title="未登录用户点击锁定号码将直跳平台前台注册/登录">?</span></label>
               <div class="f-control inline-radios">
-                <label><input type="radio" name="cfgEligibility" value="需登录平台账号" checked /> 需登录平台账号</label>
-                <label><input type="radio" name="cfgEligibility" value="仅新注册用户" /> 仅新注册用户</label>
-                <label><input type="radio" name="cfgEligibility" value="无额外限制" /> 无额外限制</label>
+                <label><input type="radio" name="cfgEligibility" value="需登录平台账号" data-freeze-field checked /> 需登录平台账号</label>
+                <label><input type="radio" name="cfgEligibility" value="仅新注册用户" data-freeze-field /> 仅新注册用户</label>
+                <label><input type="radio" name="cfgEligibility" value="无额外限制" data-freeze-field /> 无额外限制</label>
               </div>
             </div>
 
-            <!-- 进度展示 -->
+            <!-- 注册跳转与无效渠道兜底（PRD R01） -->
+            <div class="form-row form-row--top">
+              <label class="f-label"><i class="req">*</i> 注册跳转 <span class="help-q" title="PRD R01 已确认：直跳平台现有前台注册页并携带活动与渠道标识">?</span></label>
+              <div class="f-control limit-stack">
+                <div class="inline-radios">
+                  <label><input type="radio" name="cfgRegTarget" value="现有前台注册页" checked /> 直跳平台现有前台注册页（自动透传活动与渠道参数）</label>
+                </div>
+                <div class="inline-radios" style="color:#666;">
+                  <label><input type="checkbox" id="cfgRegAutoReturn" checked /> 注册成功后自动回跳活动页锁号</label>
+                  <label><input type="checkbox" id="cfgInvalidKolFallback" checked /> 无效渠道允许注册并记为「无有效来源」</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- 进度展示（PRD R03） -->
             <div class="form-row">
-              <label class="f-label">进度展示 <span class="help-q" title="开启后前台实时展示有效号码进度条">?</span></label>
-              <div class="f-control">
+              <label class="f-label">进度展示 <span class="help-q" title="有效号码数 ÷ 可发放总数，向下取整防未满额显示100%">?</span></label>
+              <div class="f-control inline-radios">
                 <label class="erp-switch">
                   <input type="checkbox" id="cfgShowProgress" checked />
                   <span class="erp-switch-track"><i>开</i></span>
                 </label>
+                <label class="inline-check"><input type="checkbox" id="cfgShowFraction" checked /> 同步展示「已发放/总量」（未满额不进位为100%）</label>
               </div>
             </div>
 
@@ -406,16 +465,34 @@
             <div class="form-row">
               <label class="f-label"><i class="req">*</i> 满额处理</label>
               <div class="f-control inline-radios">
-                <label><input type="radio" name="cfgFullAction" value="进入待开奖并停止发号" checked /> 进入待开奖并停止发号</label>
+                <label><input type="radio" name="cfgFullAction" value="进入待开奖并停止发号" data-freeze-field checked /> 进入待开奖并停止发号（同刻锁定有效号码清单）</label>
               </div>
             </div>
 
-            <!-- 开奖方式 -->
+            <!-- 开奖方式 & 结果产生方式（PRD R04） -->
             <div class="form-row">
               <label class="f-label"><i class="req">*</i> 开奖方式 <span class="help-q" title="可人工授权触发或满额后自动开奖">?</span></label>
               <div class="f-control inline-radios">
-                <label><input type="radio" name="cfgDrawMode" value="人工触发开奖" checked /> 人工触发开奖</label>
-                <label><input type="radio" name="cfgDrawMode" value="满额自动开奖" /> 满额自动开奖</label>
+                <label><input type="radio" name="cfgDrawMode" value="人工触发开奖" data-freeze-field checked /> 人工触发开奖（限开奖授权员）</label>
+                <label><input type="radio" name="cfgDrawMode" value="满额自动开奖" data-freeze-field /> 满额自动开奖</label>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <label class="f-label"><i class="req">*</i> 结果产生 <span class="help-q" title="PRD R04：结果依据与算法记录在开奖审计中">?</span></label>
+              <div class="f-control inline-radios">
+                <label><input type="radio" name="cfgDrawAlgo" value="系统加密随机抽签" data-freeze-field checked /> 系统加密随机抽签</label>
+                <label><input type="radio" name="cfgDrawAlgo" value="第三方公证期号映射" data-freeze-field /> 第三方公证期号映射</label>
+                <label><input type="radio" name="cfgDrawAlgo" value="人工录入核验结果" data-freeze-field /> 人工录入核验结果</label>
+              </div>
+            </div>
+
+            <!-- 落空号码处理（PRD R04） -->
+            <div class="form-row">
+              <label class="f-label"><i class="req">*</i> 落空处理 <span class="help-q" title="若规则命中未发放或已作废号码时的处理方式">?</span></label>
+              <div class="f-control inline-radios">
+                <label><input type="radio" name="cfgEmptyHit" value="顺延下一有效号" data-freeze-field checked /> 顺延下一有效号码</label>
+                <label><input type="radio" name="cfgEmptyHit" value="重新抽取有效号" data-freeze-field /> 重新抽取直至命中有效号</label>
               </div>
             </div>
 
@@ -423,18 +500,28 @@
             <div class="form-row">
               <label class="f-label"><i class="req">*</i> 到期未满</label>
               <div class="f-control inline-radios">
-                <label><input type="radio" name="cfgUndersold" value="按时开奖" checked /> 按时开奖</label>
-                <label><input type="radio" name="cfgUndersold" value="延期" /> 延期</label>
-                <label><input type="radio" name="cfgUndersold" value="取消本期" /> 取消本期</label>
+                <label><input type="radio" name="cfgUndersold" value="按时开奖" data-freeze-field checked /> 按时开奖</label>
+                <label><input type="radio" name="cfgUndersold" value="延期" data-freeze-field /> 延期</label>
+                <label><input type="radio" name="cfgUndersold" value="取消本期" data-freeze-field /> 取消本期</label>
               </div>
             </div>
 
-            <!-- 归因窗口 -->
+            <!-- 归因窗口 & 有效注册筛选条件（PRD R06） -->
             <div class="form-row">
-              <label class="f-label">归因窗口 <span class="help-q" title="窗口内采用最后一次有效博主来源归因">?</span></label>
+              <label class="f-label">归因口径 <span class="help-q" title="窗口内采用最后一次有效博主来源归因，同一账号仅计一次">?</span></label>
               <div class="f-control inline-num-range">
-                <input type="number" id="cfgAttrWindow" class="erp-input w-80" value="7" min="1" max="90" />
-                <span>天</span>
+                <span>窗口内末次归因</span>
+                <input type="number" id="cfgAttrWindow" class="erp-input w-64" value="7" min="1" max="90" />
+                <span>天（老账号登录与重复提交不计新增）</span>
+              </div>
+            </div>
+
+            <div class="form-row form-row--top">
+              <label class="f-label"><i class="req">*</i> 有效注册条件 <span class="help-q" title="PRD R06：进入博主推广结算的有效新注册筛选口径">?</span></label>
+              <div class="f-control inline-radios">
+                <label><input type="checkbox" checked disabled /> 平台成功创建新账号</label>
+                <label><input type="checkbox" id="cfgValidPhone" checked /> 手机号/账号唯一性校验</label>
+                <label><input type="checkbox" id="cfgValidRisk" checked /> 剔除同设备/同IP批量异常</label>
               </div>
             </div>
 
@@ -447,7 +534,7 @@
               </div>
             </div>
 
-            <!-- 结算周期 -->
+            <!-- 结算周期 & 币种（PRD R07） -->
             <div class="form-row">
               <label class="f-label"><i class="req">*</i> 结算周期</label>
               <div class="f-control inline-radios">
@@ -457,11 +544,15 @@
               </div>
             </div>
 
-            <!-- 计费口径 -->
             <div class="form-row">
-              <label class="f-label"><i class="req">*</i> 计费口径 <span class="help-q" title="按博主带来的有效新注册账号计费">?</span></label>
-              <div class="f-control inline-radios">
-                <label><input type="radio" name="cfgBillingType" value="有效注册付费" checked /> 有效注册付费</label>
+              <label class="f-label"><i class="req">*</i> 结算币种</label>
+              <div class="f-control inline-num-range">
+                <select id="cfgSettleCurrency" class="erp-input w-120">
+                  <option value="BRL" selected>BRL（雷亚尔）</option>
+                  <option value="USD">USD（美元）</option>
+                  <option value="USDT">USDT（泰达币）</option>
+                </select>
+                <span style="color:#666;">计费口径：有效注册付费（按费率版本追溯）</span>
               </div>
             </div>
 
@@ -470,7 +561,7 @@
               <label class="f-label"><i class="req">*</i> 单次费率</label>
               <div class="f-control inline-num-range">
                 <input type="number" step="0.01" id="cfgUnitRate" class="erp-input w-120" value="12.50" />
-                <span>BRL / 有效注册</span>
+                <span id="cfgRateUnitLabel">BRL / 有效注册</span>
               </div>
             </div>
 
@@ -640,6 +731,26 @@
               </div>
             </div>
 
+            <!-- 领奖期限与弃奖处理（PRD R04） -->
+            <div class="form-row">
+              <label class="f-label"><i class="req">*</i> 领奖与弃奖 <span class="help-q" title="PRD R04：配置中奖后有效领奖期限及逾期弃奖处理方式">?</span></label>
+              <div class="f-control inline-num-range">
+                <span>开奖后</span>
+                <input type="number" id="cfgClaimDays" class="erp-input w-64" value="7" min="1" max="90" />
+                <span>天内领奖，逾期：</span>
+                <label class="inline-check"><input type="radio" name="cfgForfeitRule" value="自动弃奖" checked /> 自动弃奖</label>
+                <label class="inline-check"><input type="radio" name="cfgForfeitRule" value="递补重抽" /> 递补重抽</label>
+              </div>
+            </div>
+
+            <!-- 领奖说明（PRD R04 / R05） -->
+            <div class="form-row form-row--top">
+              <label class="f-label"><i class="req">*</i> 领奖说明</label>
+              <div class="f-control">
+                <textarea id="cfgClaimDesc" class="erp-textarea" rows="2" placeholder="请说明中奖后的官方核验与派奖流程">中奖公示后，请中奖用户凭平台注册账号联系本页官方客服核验身份，核实无误后安排实物交付或等值派奖（领奖不收取任何费用）。</textarea>
+              </div>
+            </div>
+
             <!-- 规则说明 -->
             <div class="form-row form-row--top">
               <label class="f-label"><i class="req">*</i> 规则说明</label>
@@ -688,6 +799,7 @@
             <select id="detailTicketStatus" class="erp-input" style="width:120px;">
               <option value="all">全部状态</option>
               <option value="有效">有效</option>
+              <option value="待确认">待确认</option>
               <option value="作废">作废</option>
             </select>
           </div>
@@ -747,12 +859,12 @@
                 <th>结算单号</th>
                 <th>博主标识 / 名称</th>
                 <th>结算周期</th>
+                <th>点击量 / 注册量</th>
                 <th>费率版本 / 单价</th>
-                <th>有效注册数</th>
-                <th>排除异常数</th>
-                <th>调账金额</th>
+                <th>有效注册 / 排除</th>
+                <th>调账金额与原因</th>
                 <th>应付总额</th>
-                <th>状态</th>
+                <th>状态 / 付款凭证</th>
                 <th>操作</th>
               </tr>
             </thead>

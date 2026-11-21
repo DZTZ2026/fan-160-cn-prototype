@@ -2,7 +2,33 @@
   const H5_RECORDS_KEY = "fan160_prd_records_v2";
   const BASE_ISSUED = 53000;
 
-  // 活动列表数据（首条为我们本期核心「站外抽奖」活动，其余还原真实站点活动中心样本）
+  const ROLE_LABELS = {
+    ops: "Cooper（运营管理员）",
+    draw: "Alice（开奖授权员）",
+    finance: "Bob（财务审核员）"
+  };
+
+  let currentRole = "ops";
+
+  // 操作审计日志（PRD R05）
+  let auditLogs = [
+    {
+      time: "2026-11-21 15:20:00",
+      actor: "Cooper（运营管理员）",
+      module: "活动管理",
+      action: "发布并冻结规则版本",
+      detail: "发布 ID:120088「本田 Fan 160 2025（第1期）」，号码池 000001-100000（6位），规则版本冻结为 v1.0。"
+    },
+    {
+      time: "2026-11-19 10:12:45",
+      actor: "Bob（财务审核员）",
+      module: "推广结算",
+      action: "财务确认并调账",
+      detail: "结算单 SET-202611-02 已确认锁定，调账 -R$ 220.00（原因：风控复核剔除 20 笔同设备异常注册）。"
+    }
+  ];
+
+  // 活动列表数据
   let activities = [
     {
       id: 120088,
@@ -11,7 +37,7 @@
       currency: "BRL",
       type: "抽奖",
       formType: "站外抽奖",
-      condition: "需登录平台账号 · 免费领号",
+      condition: "需登录平台账号 · 免费领号（自选+随机）",
       level: "不限制",
       vip: "不限制",
       tag: "不限制",
@@ -32,6 +58,7 @@
       numEnd: "100000",
       digits: 6,
       totalPool: 100000,
+      ruleVersion: "v1.0",
       simulatedFull: false,
       winningNumber: "",
       prizes: [
@@ -43,6 +70,7 @@
         { code: "B0001", name: "Tavares 44 官方主号", status: "启用", start: "2026-11-18", end: "2026-12-18" },
         { code: "B0002", name: "巴西机车测评社", status: "启用", start: "2026-11-18", end: "2026-12-18" }
       ],
+      settleCurrency: "BRL",
       unitRate: 12.5,
       isCoreLottery: true
     },
@@ -163,19 +191,24 @@
     }
   ];
 
-  // 结算单数据（PRD R07）
+  // 结算单数据（补齐 PRD R06 点击/注册漏斗 + R07 调账原因与付款时间）
   let settlements = [
     {
       id: "SET-202611-01",
       kolCode: "B0001",
       kolName: "Tavares 44 官方主号",
       period: "2026-11-01 ~ 2026-11-30",
+      clicks: 14820,
+      registered: 1578,
       rateVer: "RATE-v1.0",
+      currency: "BRL",
       unitRate: 12.5,
       validReg: 1420,
       excluded: 158,
       adjust: 0,
+      adjustReason: "",
       status: "待核对",
+      paidAt: "",
       voucher: ""
     },
     {
@@ -183,12 +216,17 @@
       kolCode: "B0002",
       kolName: "巴西机车测评社",
       period: "2026-11-01 ~ 2026-11-30",
+      clicks: 8340,
+      registered: 754,
       rateVer: "RATE-v1.0",
+      currency: "BRL",
       unitRate: 11.0,
       validReg: 680,
       excluded: 74,
       adjust: -220,
+      adjustReason: "风控复核剔除 20 笔同设备异常注册",
       status: "已确认",
+      paidAt: "",
       voucher: ""
     },
     {
@@ -196,12 +234,17 @@
       kolCode: "B0001",
       kolName: "Tavares 44 官方主号",
       period: "2026-10-01 ~ 2026-10-31",
+      clicks: 11200,
+      registered: 1011,
       rateVer: "RATE-v0.9",
+      currency: "BRL",
       unitRate: 10.0,
       validReg: 950,
       excluded: 61,
       adjust: 0,
+      adjustReason: "",
       status: "已付款",
+      paidAt: "2026-11-05 16:40",
       voucher: "PIX-20261105-8841"
     }
   ];
@@ -217,6 +260,7 @@
       status: "有效",
       drawStatus: "待开奖",
       kolId: "KOL_Tavares44",
+      voidReason: "",
       createdAt: "2026-11-21 13:45:12"
     },
     {
@@ -229,12 +273,26 @@
       status: "有效",
       drawStatus: "待开奖",
       kolId: "KOL_Tavares44",
+      voidReason: "",
       createdAt: "2026-11-20 19:22:08"
+    },
+    {
+      recordId: "REC-20261120-012",
+      accountId: "UID_771004",
+      phone: "13699887766",
+      nickname: "待核验用户",
+      number: "052831",
+      mode: "手动选择号码",
+      status: "待确认",
+      drawStatus: "待开奖",
+      kolId: "B0002",
+      voidReason: "",
+      createdAt: "2026-11-20 14:18:05"
     }
   ];
 
   // 状态
-  let currentSubtab = "active"; // active | closed | stats | categories
+  let currentSubtab = "active";
   let selectedTypeChip = "抽奖";
   let formPrizes = [];
   let formKols = [];
@@ -242,12 +300,15 @@
   let toastTimer = null;
 
   // DOM
+  const erpRoleSelect = document.getElementById("erpRoleSelect");
   const activityTableBody = document.getElementById("activityTableBody");
   const activityTableWrap = document.getElementById("activityTableWrap");
   const activityFilterToolbar = document.getElementById("activityFilterToolbar");
   const activityPagination = document.getElementById("activityPagination");
   const statsSubpanel = document.getElementById("statsSubpanel");
   const categoriesSubpanel = document.getElementById("categoriesSubpanel");
+  const logsSubpanel = document.getElementById("logsSubpanel");
+  const auditLogTableBody = document.getElementById("auditLogTableBody");
   const totalCountText = document.getElementById("totalCountText");
   const selectedCountText = document.getElementById("selectedCountText");
 
@@ -256,10 +317,13 @@
   const filterKeyword = document.getElementById("filterKeyword");
   const filterStatus = document.getElementById("filterStatus");
 
+  const freezeNoticeBar = document.getElementById("freezeNoticeBar");
   const prizeRowsContainer = document.getElementById("prizeRowsContainer");
   const kolChannelsFormList = document.getElementById("kolChannelsFormList");
   const cfgRuleTextarea = document.getElementById("cfgRuleTextarea");
   const ruleCharCounter = document.getElementById("ruleCharCounter");
+  const cfgSettleCurrency = document.getElementById("cfgSettleCurrency");
+  const cfgRateUnitLabel = document.getElementById("cfgRateUnitLabel");
   const bannerPreviewImg = document.getElementById("bannerPreviewImg");
   const previewLangBadge = document.getElementById("previewLangBadge");
   const erpToast = document.getElementById("erpToast");
@@ -270,7 +334,7 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => {
       erpToast.hidden = true;
-    }, 2500);
+    }, 2800);
   }
 
   function nowStr() {
@@ -280,6 +344,38 @@
       d.getMinutes()
     )}:${p(d.getSeconds())}`;
   }
+
+  function addAuditLog(module, action, detail) {
+    auditLogs.unshift({
+      time: nowStr(),
+      actor: ROLE_LABELS[currentRole],
+      module,
+      action,
+      detail
+    });
+    renderAuditLogs();
+  }
+
+  function renderAuditLogs() {
+    auditLogTableBody.innerHTML = auditLogs
+      .map(
+        (l) => `
+          <tr>
+            <td style="white-space:nowrap;">${l.time}</td>
+            <td><strong>${l.actor}</strong></td>
+            <td>${l.module}</td>
+            <td>${l.action}</td>
+            <td style="text-align:left;">${l.detail}</td>
+          </tr>
+        `
+      )
+      .join("");
+  }
+
+  erpRoleSelect.addEventListener("change", () => {
+    currentRole = erpRoleSelect.value;
+    showToast(`已切换当前操作角色：${ROLE_LABELS[currentRole]}`);
+  });
 
   function loadMergedTickets() {
     let h5 = [];
@@ -293,7 +389,7 @@
       h5 = [];
     }
     const map = new Map();
-    h5.forEach((r) => map.set(r.recordId, { ...r, drawStatus: r.drawStatus || "待开奖" }));
+    h5.forEach((r) => map.set(r.recordId, { ...r, drawStatus: r.drawStatus || "待开奖", voidReason: r.voidReason || "" }));
     SEED_TICKETS.forEach((r) => {
       if (!map.has(r.recordId)) map.set(r.recordId, { ...r });
     });
@@ -346,9 +442,7 @@
       .map((a) => {
         const timeRange = a.endTime ? `${a.startTime}<br/>${a.endTime}` : a.startTime;
         const showRange = a.showEnd ? `${a.showStart}<br/>${a.showEnd}` : a.showStart;
-        const bannerCell = a.banner
-          ? `<img src="${a.banner}" alt="悬浮图" class="thumb-mini" />`
-          : "-";
+        const bannerCell = a.banner ? `<img src="${a.banner}" alt="悬浮图" class="thumb-mini" />` : "-";
 
         return `
           <tr class="${a.isCoreLottery ? "is-featured-row" : ""}">
@@ -374,11 +468,7 @@
               <div class="ops-cell">
                 <button type="button" class="link-blue" data-edit="${a.id}">修改</button>
                 <button type="button" class="link-blue" data-detail="${a.id}">详情</button>
-                ${
-                  a.type === "抽奖"
-                    ? `<button type="button" class="link-blue" data-settle="${a.id}">结算明细</button>`
-                    : ""
-                }
+                ${a.type === "抽奖" ? `<button type="button" class="link-blue" data-settle="${a.id}">结算明细</button>` : ""}
                 <button type="button" class="link-blue" data-toggle-close="${a.id}">${a.status === "已关闭" ? "重新开启" : "关闭活动"}</button>
                 <button type="button" class="link-blue" data-copy="${a.id}">复制</button>
               </div>
@@ -390,7 +480,6 @@
       })
       .join("");
 
-    // 绑定行操作
     activityTableBody.querySelectorAll("[data-edit]").forEach((btn) => {
       btn.addEventListener("click", () => openEditActivity(Number(btn.dataset.edit)));
     });
@@ -402,16 +491,25 @@
     });
     activityTableBody.querySelectorAll("[data-toggle-close]").forEach((btn) => {
       btn.addEventListener("click", () => {
+        if (currentRole !== "ops") {
+          showToast("越权拦截：仅「运营管理员」可开启或关闭活动（PRD R05）");
+          return;
+        }
         const target = activities.find((x) => x.id === Number(btn.dataset.toggleClose));
         if (!target) return;
         target.status = target.status === "已关闭" ? "进行中" : "已关闭";
         target.operateTime = nowStr();
+        addAuditLog("活动管理", target.status === "已关闭" ? "关闭活动" : "重新开启活动", `活动 ID:${target.id}「${target.name}」状态更新为 ${target.status}。`);
         renderActivityTable();
         showToast(`活动「${target.name}」已${target.status === "已关闭" ? "关闭" : "重新开启"}`);
       });
     });
     activityTableBody.querySelectorAll("[data-copy]").forEach((btn) => {
       btn.addEventListener("click", () => {
+        if (currentRole !== "ops") {
+          showToast("越权拦截：仅「运营管理员」可复制创建活动（PRD R05）");
+          return;
+        }
         const src = activities.find((x) => x.id === Number(btn.dataset.copy));
         if (!src) return;
         const clone = {
@@ -423,6 +521,7 @@
           isCoreLottery: false
         };
         activities.unshift(clone);
+        addAuditLog("活动管理", "复制活动草稿", `从 ID:${src.id} 复制生成草稿 ID:${clone.id}「${clone.name}」。`);
         renderActivityTable();
         showToast(`已复制生成草稿活动 ID: ${clone.id}`);
       });
@@ -453,13 +552,14 @@
     const tickets = loadMergedTickets();
     const extra = Math.max(0, tickets.filter((t) => t.status === "有效").length - 2);
     const issued = main.simulatedFull ? main.totalPool : Math.min(main.totalPool, BASE_ISSUED + extra);
+    const totalClicks = settlements.reduce((s, x) => s + x.clicks, 0);
     const totalReg = settlements.reduce((s, x) => s + x.validReg, 0);
     const totalPay = settlements.reduce((s, x) => s + x.validReg * x.unitRate + x.adjust, 0);
 
     document.getElementById("statsKpiRow").innerHTML = `
       <div class="stat-card"><span>本期有效号码进度</span><strong>${Math.floor((issued / main.totalPool) * 100)}% (${issued.toLocaleString()}/100,000)</strong></div>
-      <div class="stat-card"><span>累计有效注册数</span><strong>${totalReg.toLocaleString()} 人</strong></div>
-      <div class="stat-card"><span>博主渠道数</span><strong>${(main.kols || []).length} 个</strong></div>
+      <div class="stat-card"><span>博主渠道累计点击</span><strong>${totalClicks.toLocaleString()} 次</strong></div>
+      <div class="stat-card"><span>累计有效新增注册</span><strong>${totalReg.toLocaleString()} 人</strong></div>
       <div class="stat-card"><span>累计推广结算金额</span><strong>R$ ${totalPay.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong></div>
     `;
   }
@@ -475,8 +575,10 @@
       activityPagination.hidden = !isTable;
       statsSubpanel.hidden = currentSubtab !== "stats";
       categoriesSubpanel.hidden = currentSubtab !== "categories";
+      logsSubpanel.hidden = currentSubtab !== "logs";
       if (isTable) renderActivityTable();
       if (currentSubtab === "stats") renderStatsSubpanel();
+      if (currentSubtab === "logs") renderAuditLogs();
     });
   });
 
@@ -484,7 +586,6 @@
     document.querySelector('[data-subtab="stats"]').click();
   });
 
-  // 筛选按钮
   document.getElementById("searchBtn").addEventListener("click", renderActivityTable);
   document.getElementById("resetBtn").addEventListener("click", () => {
     filterCategory.value = "";
@@ -498,7 +599,6 @@
     showToast("已刷新活动列表与 H5 领号数据");
   });
 
-  // 全选联动
   ["selectAllCheckbox", "selectAllBottom"].forEach((id) => {
     document.getElementById(id).addEventListener("change", (e) => {
       const checked = e.target.checked;
@@ -510,8 +610,19 @@
   });
 
   // ===========================
-  // 2. 双栏「新增活动 / 修改活动」弹窗逻辑
+  // 2. 双栏「新增活动 / 修改活动」弹窗（含 R05 规则冻结）
   // ===========================
+  function setFrozenFieldsState(isFrozen) {
+    freezeNoticeBar.hidden = !isFrozen;
+    document.querySelectorAll("#createActivityForm [data-freeze-field]").forEach((el) => {
+      el.disabled = isFrozen;
+    });
+  }
+
+  cfgSettleCurrency.addEventListener("change", () => {
+    cfgRateUnitLabel.textContent = `${cfgSettleCurrency.value} / 有效注册`;
+  });
+
   function renderPrizeRows() {
     prizeRowsContainer.innerHTML = formPrizes
       .map(
@@ -521,11 +632,7 @@
             <input type="text" class="erp-input" value="${p.content}" data-prize-field="content" data-idx="${idx}" placeholder="奖品描述 / 金额" />
             <input type="number" class="erp-input" value="${p.qty}" min="1" data-prize-field="qty" data-idx="${idx}" />
             <div class="prize-row-ops">
-              ${
-                idx === formPrizes.length - 1
-                  ? `<button type="button" class="btn-mini-sq btn-mini-sq--blue" id="addPrizeRowBtn" title="添加奖项">+</button>`
-                  : ""
-              }
+              ${idx === formPrizes.length - 1 ? `<button type="button" class="btn-mini-sq btn-mini-sq--blue" id="addPrizeRowBtn" title="添加奖项">+</button>` : ""}
               <button type="button" class="btn-mini-sq" data-del-prize="${idx}" title="删除">×</button>
             </div>
           </div>
@@ -625,17 +732,10 @@
 
   document.getElementById("addKolRowBtn").addEventListener("click", () => {
     const nextNum = String(formKols.length + 1).padStart(4, "0");
-    formKols.push({
-      code: `B${nextNum}`,
-      name: "",
-      status: "启用",
-      start: "2026-11-18",
-      end: "2026-12-18"
-    });
+    formKols.push({ code: `B${nextNum}`, name: "", status: "启用", start: "2026-11-18", end: "2026-12-18" });
     renderKolFormRows();
   });
 
-  // 活动类型芯片选择
   document.querySelectorAll("#activityTypeGrid .type-chip").forEach((chip) => {
     chip.addEventListener("click", () => {
       document.querySelectorAll("#activityTypeGrid .type-chip").forEach((c) => c.classList.remove("is-active"));
@@ -644,7 +744,6 @@
     });
   });
 
-  // 展示时间与活动时间保持一致
   const cfgSyncDisplayTime = document.getElementById("cfgSyncDisplayTime");
   function syncDisplayDates() {
     if (!cfgSyncDisplayTime.checked) return;
@@ -655,21 +754,14 @@
   document.getElementById("cfgStartDate").addEventListener("change", syncDisplayDates);
   document.getElementById("cfgEndDate").addEventListener("change", syncDisplayDates);
 
-  // 宣传图缩略图切换 & 上传
   document.querySelectorAll("#bannerGallery .banner-thumb").forEach((btn) => {
     btn.addEventListener("click", () => {
       document.querySelectorAll("#bannerGallery .banner-thumb").forEach((b) => b.classList.remove("is-selected"));
       btn.classList.add("is-selected");
       const val = btn.dataset.banner;
-      if (val.startsWith("assets/")) {
-        selectedBannerSrc = val;
-        bannerPreviewImg.src = val;
-        bannerPreviewImg.hidden = false;
-      } else {
-        selectedBannerSrc = "assets/fan-160-hero.jpg";
-        bannerPreviewImg.src = "assets/fan-160-hero.jpg";
-        showToast(`已切换预览模板：${btn.dataset.title}`);
-      }
+      selectedBannerSrc = val.startsWith("assets/") ? val : "assets/fan-160-hero.jpg";
+      bannerPreviewImg.src = selectedBannerSrc;
+      if (!val.startsWith("assets/")) showToast(`已切换预览模板：${btn.dataset.title}`);
     });
   });
 
@@ -692,9 +784,9 @@
 
   document.getElementById("clearBannerBtn").addEventListener("click", (e) => {
     e.stopPropagation();
-    showToast("已恢复默认主视觉宣传图");
     selectedBannerSrc = "assets/fan-160-hero.jpg";
     bannerPreviewImg.src = selectedBannerSrc;
+    showToast("已恢复默认主视觉宣传图");
   });
 
   document.getElementById("toggleGalleryBtn").addEventListener("click", (e) => {
@@ -711,20 +803,25 @@
     });
   });
 
-  // 规则字数统计
   function updateRuleCounter() {
     ruleCharCounter.textContent = `${cfgRuleTextarea.value.length} / 10000`;
   }
   cfgRuleTextarea.addEventListener("input", updateRuleCounter);
 
-  // 打开新增活动
   function openCreateActivity() {
+    if (currentRole !== "ops") {
+      showToast("越权拦截：仅「运营管理员」可新增活动配置（PRD R05）");
+      return;
+    }
     document.getElementById("createModalTitle").textContent = "新增活动";
     document.getElementById("editingActivityId").value = "";
     document.getElementById("cfgActName").value = "";
     document.getElementById("cfgRound").value = "第1期";
     document.getElementById("cfgSponsor").value = "塔瓦雷斯活动方";
+    cfgSettleCurrency.value = "BRL";
+    cfgRateUnitLabel.textContent = "BRL / 有效注册";
     document.getElementById("cfgUnitRate").value = "12.50";
+    setFrozenFieldsState(false);
     formPrizes = [
       { name: "一等奖", content: "", qty: 1 },
       { name: "2等奖", content: "", qty: 1 },
@@ -737,7 +834,6 @@
     openModal("createActivityModal");
   }
 
-  // 打开修改活动
   function openEditActivity(id) {
     const act = activities.find((a) => a.id === id);
     if (!act) return;
@@ -746,13 +842,19 @@
     document.getElementById("cfgActName").value = act.name;
     document.getElementById("cfgRound").value = act.round || "第1期";
     document.getElementById("cfgSponsor").value = act.sponsor || "塔瓦雷斯活动方";
+    cfgSettleCurrency.value = act.settleCurrency || "BRL";
+    cfgRateUnitLabel.textContent = `${cfgSettleCurrency.value} / 有效注册`;
     document.getElementById("cfgUnitRate").value = act.unitRate ? act.unitRate.toFixed(2) : "12.50";
+
+    // PRD R05：已发布活动冻结关键规则字段
+    const isPublished = ["进行中", "待开奖", "已开奖"].includes(act.status);
+    setFrozenFieldsState(isPublished);
+
     formPrizes = act.prizes
       ? act.prizes.map((p) => ({ ...p }))
       : [
           { name: "一等奖", content: "2025款 本田 Fan 160 摩托车", qty: 1 },
-          { name: "2等奖", content: "现金幸运奖 ¥500", qty: 8 },
-          { name: "3等奖", content: "平台彩金", qty: 10 }
+          { name: "2等奖", content: "现金幸运奖 ¥500", qty: 8 }
         ];
     formKols = act.kols
       ? act.kols.map((k) => ({ ...k }))
@@ -764,26 +866,42 @@
   }
 
   function saveActivity(targetStatus) {
+    if (currentRole !== "ops") {
+      showToast("越权拦截：仅「运营管理员」可发布或保存活动配置（PRD R05）");
+      return;
+    }
+
     const name = document.getElementById("cfgActName").value.trim();
     const round = document.getElementById("cfgRound").value.trim();
     const sponsor = document.getElementById("cfgSponsor").value.trim();
     const start = document.getElementById("cfgStartDate").value;
     const end = document.getElementById("cfgEndDate").value;
     const isPerm = document.getElementById("cfgActPermanent").checked;
+    const perClaim = parseInt(document.getElementById("cfgPerClaimLimit").value, 10) || 1;
+    const userLimit = parseInt(document.getElementById("cfgUserLimit").value, 10) || 1;
+    const issueModes = Array.from(document.querySelectorAll('input[name="cfgIssueMode"]:checked')).map((el) => el.value);
 
-    if (!name) {
-      showToast("请输入活动名称");
-      document.getElementById("cfgActName").focus();
+    if (!name || !round || !sponsor) {
+      showToast("校验失败：活动名称、期次、主办方为必填项（PRD R05）");
+      return;
+    }
+    if (issueModes.length === 0) {
+      showToast("校验失败：请至少选择一种号码发放方式（PRD R02）");
+      return;
+    }
+    if (perClaim > userLimit) {
+      showToast("校验失败：单次上限不得大于单人每期上限（PRD R02）");
       return;
     }
     if (!isPerm && start && end && end < start) {
-      showToast("活动结束时间不得早于开始时间");
+      showToast("校验失败：活动结束时间不得早于开始时间（PRD R05）");
       return;
     }
 
     const formType = (document.querySelector('input[name="actFormType"]:checked') || {}).value || "站外抽奖";
     const eligibility = (document.querySelector('input[name="cfgEligibility"]:checked') || {}).value || "需登录平台账号";
     const drawMode = (document.querySelector('input[name="cfgDrawMode"]:checked') || {}).value || "人工触发开奖";
+    const modeShort = issueModes.length === 2 ? "自选+随机" : issueModes[0];
     const editId = document.getElementById("editingActivityId").value;
 
     if (editId) {
@@ -795,26 +913,29 @@
         target.type = selectedTypeChip;
         target.formType = formType;
         target.category = formType;
-        target.condition = `${eligibility} · 免费领号`;
+        target.condition = `${eligibility} · 免费领号（${modeShort}）`;
         target.dispatchMode = drawMode;
         target.startTime = isPerm ? "不限" : start;
         target.endTime = isPerm ? "" : end;
-        target.status = targetStatus;
+        target.status = target.status === "草稿" ? targetStatus : target.status;
         target.banner = selectedBannerSrc;
         target.prizes = formPrizes.map((p) => ({ ...p }));
         target.kols = formKols.map((k) => ({ ...k }));
+        target.settleCurrency = cfgSettleCurrency.value;
+        target.unitRate = parseFloat(document.getElementById("cfgUnitRate").value) || 0;
         target.operateTime = nowStr();
       }
-      showToast(`活动「${name}」已${targetStatus === "进行中" ? "立即发布" : "保存为草稿"}`);
+      addAuditLog("活动管理", "更新活动配置", `更新 ID:${editId}「${name}」（渠道数 ${formKols.length}，结算币种 ${cfgSettleCurrency.value}）。`);
+      showToast(`活动「${name}」配置已更新并记录审计日志`);
     } else {
       const newAct = {
         id: Math.floor(120100 + Math.random() * 899),
         name,
         category: formType,
-        currency: "BRL",
+        currency: cfgSettleCurrency.value,
         type: selectedTypeChip,
         formType,
-        condition: `${eligibility} · 免费领号`,
+        condition: `${eligibility} · 免费领号（${modeShort}）`,
         level: "不限制",
         vip: "不限制",
         tag: "不限制",
@@ -831,13 +952,16 @@
         operateTime: nowStr(),
         round,
         sponsor,
-        totalPool: 100000,
+        totalPool: Math.max(100, parseInt(document.getElementById("cfgNumEnd").value, 10) || 100000),
+        ruleVersion: targetStatus === "进行中" ? "v1.0" : "v0.1",
         prizes: formPrizes.map((p) => ({ ...p })),
         kols: formKols.map((k) => ({ ...k })),
+        settleCurrency: cfgSettleCurrency.value,
         unitRate: parseFloat(document.getElementById("cfgUnitRate").value) || 0,
         isCoreLottery: true
       };
       activities.unshift(newAct);
+      addAuditLog("活动管理", targetStatus === "进行中" ? "发布新活动" : "保存活动草稿", `创建 ID:${newAct.id}「${name}」（${round}），状态：${targetStatus}。`);
       showToast(`已新增活动「${name}」（状态：${targetStatus}）`);
     }
 
@@ -853,7 +977,7 @@
   });
 
   // ===========================
-  // 3. 活动详情：号码池与开奖管理弹窗（联动 H5）
+  // 3. 活动详情：号码池与开奖管理（含作废原因留痕 & 角色权限校验）
   // ===========================
   function openLotteryDetail(actId) {
     const act = activities.find((a) => a.id === actId) || activities[0];
@@ -871,9 +995,9 @@
     if (issued < total && pct >= 100) pct = 99;
 
     document.getElementById("detailSummaryBar").innerHTML = `
-      <div class="detail-sum-box"><span>当前活动状态</span><strong>${act.status}</strong></div>
-      <div class="detail-sum-box"><span>有效号码进度</span><strong>${pct}% (${issued.toLocaleString()} / ${total.toLocaleString()})</strong></div>
-      <div class="detail-sum-box"><span>开奖方式</span><strong>${act.dispatchMode || "人工触发开奖"}</strong></div>
+      <div class="detail-sum-box"><span>当前活动状态 / 规则版本</span><strong>${act.status}（${act.ruleVersion || "v1.0"}）</strong></div>
+      <div class="detail-sum-box"><span>有效号码进度（待确认/作废不计入）</span><strong>${pct}% (${issued.toLocaleString()} / ${total.toLocaleString()})</strong></div>
+      <div class="detail-sum-box"><span>开奖方式 / 结果依据</span><strong>${act.dispatchMode || "人工触发开奖"}</strong></div>
       <div class="detail-sum-box"><span>大奖公示号码</span><strong style="color:#52c41a;">${act.winningNumber || "待开奖"}</strong></div>
     `;
 
@@ -886,8 +1010,9 @@
     });
 
     document.getElementById("detailTicketsBody").innerHTML = filtered
-      .map(
-        (r) => `
+      .map((r) => {
+        const stCls = r.status === "有效" ? "status-txt--running" : r.status === "待确认" ? "status-txt--pending" : "status-txt--closed";
+        return `
           <tr>
             <td>${r.recordId}</td>
             <td><strong>${r.number}</strong></td>
@@ -896,28 +1021,41 @@
             <td>${r.mode}</td>
             <td>${r.kolId || "B0001"}</td>
             <td>${r.createdAt}</td>
-            <td><span class="status-txt ${r.status === "有效" ? "status-txt--running" : "status-txt--closed"}">${r.status}</span></td>
+            <td>
+              <span class="status-txt ${stCls}">${r.status}</span>
+              ${r.voidReason ? `<div style="font-size:10.5px;color:#ff4d4f;">原因：${r.voidReason}</div>` : ""}
+            </td>
             <td>${r.drawStatus || "待开奖"}</td>
             <td>
               ${
-                r.status === "有效"
-                  ? `<button type="button" class="link-danger" data-void-rec="${r.recordId}">作废</button>`
+                r.status === "有效" || r.status === "待确认"
+                  ? `<button type="button" class="link-danger" data-void-rec="${r.recordId}" data-void-num="${r.number}">作废</button>`
                   : "-"
               }
             </td>
           </tr>
-        `
-      )
+        `;
+      })
       .join("");
 
     document.getElementById("detailTicketsBody").querySelectorAll("[data-void-rec]").forEach((btn) => {
       btn.addEventListener("click", () => {
+        if (currentRole !== "ops") {
+          showToast("越权拦截：仅「运营管理员」可操作号码作废（PRD R05）");
+          return;
+        }
+        const reason = window.prompt(`请输入作废号码 ${btn.dataset.voidNum} 的原因（必填，将留痕记录）：`, "风控识别异常批量注册");
+        if (!reason || !reason.trim()) {
+          showToast("未填写作废原因，已取消作废操作");
+          return;
+        }
         const updated = loadMergedTickets().map((r) =>
-          r.recordId === btn.dataset.voidRec ? { ...r, status: "作废", drawStatus: "未中奖" } : r
+          r.recordId === btn.dataset.voidRec ? { ...r, status: "作废", drawStatus: "未中奖", voidReason: reason.trim() } : r
         );
         saveMergedTickets(updated);
+        addAuditLog("号码管理", "作废号码", `作废记录 ${btn.dataset.voidRec}（号码 ${btn.dataset.voidNum}），原因：${reason.trim()}`);
         renderDetailTickets(act);
-        showToast("已作废该号码并扣减有效进度");
+        showToast(`号码 ${btn.dataset.voidNum} 已作废并留存原因`);
       });
     });
   }
@@ -927,22 +1065,31 @@
   document.getElementById("detailTicketStatus").addEventListener("change", () => renderDetailTickets(activities[0]));
 
   document.getElementById("detailLockPoolBtn").addEventListener("click", () => {
+    if (currentRole === "finance") {
+      showToast("越权拦截：财务角色无权操作号码池锁定");
+      return;
+    }
     const main = activities[0];
     main.simulatedFull = true;
     main.status = "待开奖";
+    addAuditLog("号码与开奖", "满额锁定号码池", `活动 ID:${main.id} 达到 100% 满额，停止发号并锁定有效号码清单进入「待开奖」。`);
     renderActivityTable();
     renderDetailTickets(main);
     showToast("已模拟达到 100% 满额，停止发号并进入「待开奖」");
   });
 
   document.getElementById("detailTriggerDrawBtn").addEventListener("click", () => {
+    if (currentRole !== "draw") {
+      showToast("越权拦截：请先在右上角切换为「Alice（开奖授权员）」再执行开奖（PRD R04/R05）");
+      return;
+    }
     const main = activities[0];
     if (main.status !== "待开奖" && main.status !== "已开奖") {
-      showToast("未达到满额开奖条件，请先点击「模拟满额锁池 (100%)」");
+      showToast("未达到满额开奖条件，请先点击「模拟满额锁池 (100%)」（PRD R04）");
       return;
     }
     if (main.status === "已开奖") {
-      showToast(`本期已开奖，沿用公示号码 ${main.winningNumber}`);
+      showToast(`幂等保护：本期已开奖，沿用既有公示号码 ${main.winningNumber}`);
       return;
     }
     const list = loadMergedTickets();
@@ -951,13 +1098,14 @@
     main.status = "已开奖";
     main.winningNumber = winNum;
     saveMergedTickets(list.map((r) => (r.status === "有效" ? { ...r, drawStatus: r.number === winNum ? "已中奖" : "未中奖" } : r)));
+    addAuditLog("号码与开奖", "执行开奖并公示", `按规则版本 ${main.ruleVersion || "v1.0"} 人工触发开奖，中奖号码 ${winNum} 已入库并公示。`);
     renderActivityTable();
     renderDetailTickets(main);
     showToast(`开奖成功并已前台公示！中奖号码：${winNum}`);
   });
 
   // ===========================
-  // 4. 博主推广结算明细弹窗（PRD R07）
+  // 4. 博主推广结算明细弹窗（PRD R06 漏斗 + R07 财务确认/调账/付款）
   // ===========================
   function openSettlementModal() {
     renderSettlementRows();
@@ -974,15 +1122,25 @@
             <td>${s.id}</td>
             <td><strong>${s.kolCode}</strong><br/><span style="color:#888;">${s.kolName}</span></td>
             <td>${s.period}</td>
-            <td>${s.rateVer}<br/>R$ ${s.unitRate.toFixed(2)}</td>
-            <td><strong>${s.validReg}</strong></td>
-            <td>${s.excluded}</td>
-            <td style="color:${s.adjust < 0 ? "#ff4d4f" : "#333"};">${s.adjust >= 0 ? `+R$ ${s.adjust.toFixed(2)}` : `-R$ ${Math.abs(s.adjust).toFixed(2)}`}</td>
-            <td><strong>R$ ${total.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong></td>
-            <td><span class="status-txt ${cls}">${s.status}</span>${s.voucher ? `<br/><span style="font-size:10px;color:#888;">${s.voucher}</span>` : ""}</td>
+            <td>点击 ${s.clicks.toLocaleString()}<br/>注册 ${s.registered.toLocaleString()}</td>
+            <td>${s.rateVer}<br/>${s.currency} ${s.unitRate.toFixed(2)}</td>
+            <td><strong>${s.validReg}</strong> 有效<br/><span style="color:#999;">排除 ${s.excluded}</span></td>
+            <td style="color:${s.adjust < 0 ? "#ff4d4f" : "#333"};">
+              ${s.adjust >= 0 ? `+${s.adjust.toFixed(2)}` : `-${Math.abs(s.adjust).toFixed(2)}`}
+              ${s.adjustReason ? `<div style="font-size:10.5px;color:#666;">${s.adjustReason}</div>` : ""}
+            </td>
+            <td><strong>${s.currency} ${total.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong></td>
+            <td>
+              <span class="status-txt ${cls}">${s.status}</span>
+              ${s.voucher ? `<div style="font-size:10px;color:#666;">${s.voucher}<br/>${s.paidAt}</div>` : ""}
+            </td>
             <td>
               ${s.status === "待核对" ? `<button type="button" class="link-blue" data-set-confirm="${s.id}">财务确认</button>` : ""}
-              ${s.status === "已确认" ? `<button type="button" class="link-blue" data-set-pay="${s.id}">登记付款</button>` : ""}
+              ${
+                s.status === "已确认"
+                  ? `<button type="button" class="link-blue" data-set-adjust="${s.id}">调账</button><button type="button" class="link-blue" data-set-pay="${s.id}">登记付款</button>`
+                  : ""
+              }
               ${s.status === "已付款" ? `<span style="color:#999;">已完结</span>` : ""}
             </td>
           </tr>
@@ -992,20 +1150,61 @@
 
     document.getElementById("settlementModalBody").querySelectorAll("[data-set-confirm]").forEach((btn) => {
       btn.addEventListener("click", () => {
+        if (currentRole !== "finance") {
+          showToast("越权拦截：请先在右上角切换为「Bob（财务审核员）」执行确认（PRD R05/R07）");
+          return;
+        }
         const s = settlements.find((x) => x.id === btn.dataset.setConfirm);
         if (!s) return;
         s.status = "已确认";
+        addAuditLog("推广结算", "财务确认结算单", `结算单 ${s.id} 已确认锁定（有效注册 ${s.validReg}，费率版本 ${s.rateVer}）。`);
         renderSettlementRows();
         showToast(`结算单 ${s.id} 已确认锁定明细与费率版本`);
       });
     });
 
+    document.getElementById("settlementModalBody").querySelectorAll("[data-set-adjust]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (currentRole !== "finance") {
+          showToast("越权拦截：仅「财务审核员」可登记调账记录（PRD R07）");
+          return;
+        }
+        const s = settlements.find((x) => x.id === btn.dataset.setAdjust);
+        if (!s) return;
+        const amtRaw = window.prompt(`请输入结算单 ${s.id} 调整金额（${s.currency}，扣减填负数如 -50）：`, "-50");
+        if (amtRaw === null) return;
+        const amt = parseFloat(amtRaw);
+        if (Number.isNaN(amt)) {
+          showToast("调整金额格式不正确");
+          return;
+        }
+        const reason = window.prompt("请输入调账原因（必填，将写入财务留痕）：", "事后风控复核剔除异常账号");
+        if (!reason || !reason.trim()) {
+          showToast("未填写调账原因，已取消操作");
+          return;
+        }
+        s.adjust += amt;
+        s.adjustReason = s.adjustReason ? `${s.adjustReason}；${reason.trim()}` : reason.trim();
+        addAuditLog("推广结算", "登记调账记录", `结算单 ${s.id} 调账 ${amt >= 0 ? "+" : ""}${amt.toFixed(2)} ${s.currency}，原因：${reason.trim()}`);
+        renderSettlementRows();
+        showToast(`已完成调账并留痕记录`);
+      });
+    });
+
     document.getElementById("settlementModalBody").querySelectorAll("[data-set-pay]").forEach((btn) => {
       btn.addEventListener("click", () => {
+        if (currentRole !== "finance") {
+          showToast("越权拦截：仅「财务审核员」可登记付款凭证（PRD R05/R07）");
+          return;
+        }
         const s = settlements.find((x) => x.id === btn.dataset.setPay);
         if (!s) return;
+        const voucher = window.prompt(`请输入结算单 ${s.id} 的付款凭证号/流水号：`, `PIX-${Date.now().toString().slice(-8)}`);
+        if (!voucher || !voucher.trim()) return;
         s.status = "已付款";
-        s.voucher = `PIX-${Date.now().toString().slice(-8)}`;
+        s.voucher = voucher.trim();
+        s.paidAt = nowStr();
+        addAuditLog("推广结算", "登记付款凭证", `结算单 ${s.id} 已标记付款，凭证号：${s.voucher}。`);
         renderSettlementRows();
         showToast(`结算单 ${s.id} 已登记付款凭证 ${s.voucher}`);
       });
@@ -1015,42 +1214,46 @@
   document.getElementById("openSettlementFromModalBtn").addEventListener("click", openSettlementModal);
   document.getElementById("openSettlementFromStatsBtn").addEventListener("click", openSettlementModal);
   document.getElementById("exportSettlementCsvBtn").addEventListener("click", () => {
-    const header = ["结算单号", "博主标识", "博主名称", "周期", "费率版本", "单价(BRL)", "有效注册", "调账", "应付总额(BRL)", "状态", "付款凭证"];
+    const header = ["结算单号", "博主标识", "博主名称", "周期", "点击量", "注册成功量", "费率版本", "币种", "单价", "有效注册", "排除异常", "调账金额", "调账原因", "应付总额", "状态", "付款时间", "付款凭证"];
     const rows = settlements.map((s) => [
       s.id,
       s.kolCode,
       s.kolName,
       s.period,
+      s.clicks,
+      s.registered,
       s.rateVer,
+      s.currency,
       s.unitRate.toFixed(2),
       s.validReg,
+      s.excluded,
       s.adjust.toFixed(2),
+      s.adjustReason,
       (s.validReg * s.unitRate + s.adjust).toFixed(2),
       s.status,
+      s.paidAt,
       s.voucher
     ]);
     const csv = "\uFEFF" + [header, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "巴西站-站外抽奖博主结算明细.csv";
+    a.download = "巴西站-站外抽奖博主结算对账单.csv";
     a.click();
     URL.revokeObjectURL(a.href);
-    showToast("已导出 CSV 结算对账单");
+    showToast("已导出完整 CSV 结算对账单");
   });
 
-  // 其他轻量交互按钮
   document.getElementById("openGlobalSettingsBtn").addEventListener("click", () => {
-    showToast("活动全局设置：默认归因窗口 7 天，满额自动锁池");
+    showToast("活动全局设置：默认归因窗口 7 天，满额自动锁池，角色权限按 R05 隔离");
   });
   document.getElementById("openTutorialBtn").addEventListener("click", () => {
-    showToast("操作提示：点击「+ 新增活动」可查看完整的站外编号抽奖双栏配置表单");
+    showToast("操作提示：右上角可切换「运营/开奖授权/财务」角色，测试完整 PRD 权限与留痕闭环");
   });
   document.querySelectorAll("[data-tip]").forEach((btn) => {
     btn.addEventListener("click", () => showToast(btn.dataset.tip));
   });
 
-  // 弹窗开关
   function openModal(id) {
     document.getElementById(id).hidden = false;
   }
@@ -1061,6 +1264,6 @@
     btn.addEventListener("click", () => closeModal(btn.dataset.closeModal));
   });
 
-  // 初始化
   renderActivityTable();
+  renderAuditLogs();
 })();
