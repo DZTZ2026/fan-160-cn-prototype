@@ -506,6 +506,18 @@
               </div>
             </div>
 
+            <!-- 领奖期限与弃奖处理（PRD R04，归属左栏活动特殊配置） -->
+            <div class="form-row">
+              <label class="f-label"><i class="req">*</i> 领奖与弃奖 <span class="help-q" tabindex="0" data-tip-text="配置中奖公示后的有效兑奖天数及逾期未领奖的处理规则：自动弃奖作废或从有效号码池中递补重抽。">?</span></label>
+              <div class="f-control inline-num-range">
+                <span>开奖后</span>
+                <input type="number" id="cfgClaimDays" class="erp-input w-64" data-freeze-field value="7" min="1" max="90" />
+                <span>天内领奖，逾期：</span>
+                <label class="inline-check"><input type="radio" name="cfgForfeitRule" value="自动弃奖" data-freeze-field checked /> 自动弃奖</label>
+                <label class="inline-check"><input type="radio" name="cfgForfeitRule" value="递补重抽" data-freeze-field /> 递补重抽</label>
+              </div>
+            </div>
+
             <!-- 归因窗口 & 有效注册筛选条件（PRD R06） -->
             <div class="form-row">
               <label class="f-label">归因口径 <span class="help-q" tabindex="0" data-tip-text="用户在归因窗口（天）内先后访问多个博主链接时，取注册前最后一次有效博主来源；同一平台账号的新注册仅归属一个博主且仅计一次，老账号登录不计新增。">?</span></label>
@@ -690,18 +702,6 @@
                   <input type="checkbox" checked />
                   <span class="erp-switch-track"><i>开</i></span>
                 </label>
-              </div>
-            </div>
-
-            <!-- 领奖期限与弃奖处理（PRD R04） -->
-            <div class="form-row">
-              <label class="f-label"><i class="req">*</i> 领奖与弃奖 <span class="help-q" tabindex="0" data-tip-text="配置中奖公示后的有效兑奖天数及逾期未领奖的处理规则：自动弃奖作废或从有效号码池中递补重抽。">?</span></label>
-              <div class="f-control inline-num-range">
-                <span>开奖后</span>
-                <input type="number" id="cfgClaimDays" class="erp-input w-64" value="7" min="1" max="90" />
-                <span>天内领奖，逾期：</span>
-                <label class="inline-check"><input type="radio" name="cfgForfeitRule" value="自动弃奖" checked /> 自动弃奖</label>
-                <label class="inline-check"><input type="radio" name="cfgForfeitRule" value="递补重抽" /> 递补重抽</label>
               </div>
             </div>
 
