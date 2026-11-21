@@ -730,11 +730,13 @@ textarea {
 }
 
 .erp-modal--xl {
-  max-width: 1180px;
+  width: 96vw;
+  max-width: 1460px;
 }
 
 .erp-modal--lg {
-  max-width: 980px;
+  width: 92vw;
+  max-width: 1140px;
 }
 
 .erp-modal-header {
@@ -772,7 +774,7 @@ textarea {
 }
 
 .erp-modal-body {
-  padding: 16px 22px;
+  padding: 18px 28px;
   overflow-y: auto;
   flex: 1;
 }
@@ -791,7 +793,7 @@ textarea {
 .dual-col-layout {
   display: grid;
   grid-template-columns: 1.08fr 0.92fr;
-  gap: 28px;
+  gap: 36px;
   align-items: start;
 }
 
