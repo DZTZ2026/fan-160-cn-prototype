@@ -171,7 +171,7 @@
       number: "668427",
       mode: "系统随机分配",
       status: "有效",
-      drawStatus: "已中奖",
+      drawStatus: "待开奖",
       kolId: "KOL_Tavares44",
       isNewRegistration: true,
       voidReason: "",
@@ -353,7 +353,7 @@
       </div>
       <div class="kpi-card">
         <div class="kpi-label">待结算应付金额</div>
-        <div class="kpi-value">$${pendingSettleAmt.toFixed(2)}</div>
+        <div class="kpi-value">$${pendingSettleAmt.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
         <div class="kpi-sub">含待核对与已确认未付款结算单</div>
       </div>
     `;
@@ -961,6 +961,7 @@
   renderDrawPanel();
   renderTickets();
   renderChannels();
+  renderAttribution();
   renderSettlements();
   renderSettlementDetail();
   renderAuditLogs();
