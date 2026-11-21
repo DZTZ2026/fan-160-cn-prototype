@@ -2,687 +2,157 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>本田 Fan 160 2025 编号抽奖活动 :: 平台官方合作</title>
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>包网 需求与原型 :: 包网需求清单</title>
+  <link rel="stylesheet" href="catalog.css" />
 </head>
 <body>
-  <div class="app-shell">
-    <!-- 顶部粘性导航栏：左上角改为平台 LOGO（已移除汉堡菜单按钮） -->
-    <header class="site-header" id="siteHeader">
-      <a href="#top" class="platform-logo" id="platformLogoBtn" aria-label="平台官方LOGO">
-        <span class="platform-logo-mark" aria-hidden="true">
-          <svg viewBox="0 0 36 36" width="32" height="32">
-            <defs>
-              <linearGradient id="platGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#22c55e" />
-                <stop offset="100%" stop-color="#15803d" />
-              </linearGradient>
-            </defs>
-            <rect x="2" y="2" width="32" height="32" rx="9" fill="url(#platGrad)" />
-            <path d="M11 23L15.2 12H18.8L23 23H19.8L18.9 20.4H15.1L14.2 23H11ZM15.9 18H18.1L17 14.6L15.9 18Z" fill="#ffffff" />
-            <circle cx="26.5" cy="9.5" r="2.5" fill="#fde047" />
-          </svg>
-        </span>
-        <span class="platform-logo-text">
-          <span class="platform-logo-name">平台LOGO</span>
-          <span class="platform-logo-sub">官方活动平台</span>
-        </span>
-      </a>
-
-      <div class="header-right-actions">
-        <!-- 客服在左：纯图标按钮 -->
-        <button class="header-support-icon-btn" id="openSupportBtn" type="button" aria-label="联系在线客服" title="在线客服">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M4 12a8 8 0 0 1 16 0" />
-            <rect x="2" y="12" width="4" height="6" rx="2" fill="currentColor" stroke="none" />
-            <rect x="18" y="12" width="4" height="6" rx="2" fill="currentColor" stroke="none" />
-            <path d="M20 18v1a3 3 0 0 1-3 3h-3" />
-          </svg>
-        </button>
-
-        <!-- 账号在右：未登录显示「登录/注册」，登录后显示圆形头像 -->
-        <div class="header-account-wrap" id="headerAccountWrap">
-          <button class="header-user-pill" id="headerAccountBtn" type="button" aria-label="登录或注册">
-            <span class="header-login-label" id="headerAccountText">登录/注册</span>
-            <span class="header-avatar" id="headerAvatar" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                <path d="M12 12a4.2 4.2 0 1 0-4.2-4.2A4.2 4.2 0 0 0 12 12Zm0 2c-3.8 0-7 2-7 4.5V20h14v-1.5c0-2.5-3.2-4.5-7-4.5Z" />
-              </svg>
-            </span>
-          </button>
-
-          <!-- 登录后点击头像弹出的轻量菜单 -->
-          <div class="avatar-popover" id="avatarPopover" hidden>
-            <div class="avatar-popover-user">
-              <strong id="avatarPopoverName">账号：--</strong>
-              <span id="avatarPopoverUid">ID：--</span>
-            </div>
-            <button type="button" class="avatar-popover-item" id="popoverTicketsBtn">我的号码</button>
-            <button type="button" class="avatar-popover-item avatar-popover-item--danger" id="popoverLogoutBtn">退出登录</button>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <main id="top">
-      <!-- 活动主视觉 Banner -->
-      <section class="hero-banner" aria-label="活动主图">
-        <img
-          src="assets/fan-160-hero.jpg"
-          alt="2025款深蓝色本田 Fan 160 摩托车"
-          class="hero-image"
-          id="heroImage"
-        />
-        <div class="hero-top-scrim"></div>
-        <div class="hero-bottom-overlay">
-          <div class="hero-badges-row">
-            <span class="badge-live blink">免费领号 · 进行中</span>
-            <span class="badge-round">第 202601 期</span>
-          </div>
-          <h1 class="hero-title">本田 Fan 160 2025</h1>
-          <p class="hero-subtitle">主办方：塔瓦雷斯活动方 · 合作平台账号参与 · 满额即锁池开奖</p>
-        </div>
-      </section>
-
-      <!-- 黑色操作条：我的号码 & 活动规则 -->
-      <section class="action-strip" role="group" aria-label="活动查询与规则">
-        <button class="action-strip-btn" id="openTicketsBtn" type="button">
-          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
-            <path d="M13 5v2" />
-            <path d="M13 17v2" />
-            <path d="M13 11v2" />
-          </svg>
-          <span>我的号码</span>
-          <span class="my-tickets-badge" id="myTicketsBadge" hidden>0</span>
-        </button>
-        <span class="action-strip-divider" aria-hidden="true"></span>
-        <button class="action-strip-btn" id="openRulesBtn" type="button">
-          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="9" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <circle cx="12" cy="16" r="0.6" fill="currentColor" />
-          </svg>
-          <span>活动规则</span>
-        </button>
-      </section>
-
-      <!-- 活动进度条（PRD R03：展示百分比 + 已发放/总量，未满额不进位为100%） -->
-      <section class="progress-wrapper" aria-label="活动进度">
-        <div
-          class="progress-track"
-          id="progressTrack"
-          role="progressbar"
-          aria-valuenow="53"
-          aria-valuemin="0"
-          aria-valuemax="100"
-          aria-label="当前活动有效号码进度"
-        >
-          <div class="progress-fill" id="progressFill" style="width: 53%;">
-            <span class="progress-label" id="progressLabel">53%</span>
-          </div>
-        </div>
-        <div class="progress-meta-bar">
-          <span id="progressCountText">有效号码：<strong>53,000</strong> / 100,000</span>
-          <span class="progress-stage-tag" id="progressStageTag">满 100% 进入待开奖</span>
-        </div>
-      </section>
-
-      <!-- 主内容区 -->
-      <div class="page-content">
-        <!-- 免费参与说明行（替代原「仅需 ¥ 0.05」） -->
-        <div class="free-banner-row">
-          <span class="free-banner-text">参与方式</span>
-          <span class="free-banner-pill">免费领号 · 无需购买</span>
-        </div>
-
-        <!-- 选号方式核心交互区（PRD R02：手动选号 / 系统随机分配） -->
-        <section class="selection-area" id="selectionArea" aria-label="选择抽奖号码">
-          <!-- 双模式分段切换 -->
-          <div class="mode-tabs" role="tablist" aria-label="选号模式">
-            <button
-              class="mode-tab is-active"
-              id="tabManual"
-              type="button"
-              role="tab"
-              aria-selected="true"
-              aria-controls="panelManual"
-            >
-              <span class="mode-tab-icon" aria-hidden="true">✋</span>
-              <span>手动选择号码</span>
-            </button>
-            <button
-              class="mode-tab"
-              id="tabRandom"
-              type="button"
-              role="tab"
-              aria-selected="false"
-              aria-controls="panelRandom"
-            >
-              <span class="mode-tab-icon" aria-hidden="true">🎲</span>
-              <span>系统随机分配</span>
-            </button>
-          </div>
-
-          <!-- 模式 1：手动选择号码 -->
-          <div class="mode-panel" id="panelManual" role="tabpanel" aria-labelledby="tabManual">
-            <!-- 指定号码输入 / 换一批工具条 -->
-            <div class="manual-toolbar">
-              <div class="custom-num-box">
-                <input
-                  type="text"
-                  id="customNumberInput"
-                  class="custom-num-input"
-                  maxlength="6"
-                  inputmode="numeric"
-                  placeholder="输入6位自选号 (000001-100000)"
-                  aria-label="输入6位自选抽奖号码"
-                />
-                <button class="custom-num-btn" id="applyCustomNumBtn" type="button">选用</button>
-              </div>
-              <button class="refresh-pool-btn" id="refreshPoolBtn" type="button" title="换一批可选号码">
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <polyline points="23 4 23 10 17 10" />
-                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
-                </svg>
-                <span>换一批</span>
-              </button>
-            </div>
-
-            <!-- 3x3 可选号码网格 -->
-            <div class="number-grid" id="manualNumberGrid" role="radiogroup" aria-label="可选号码列表">
-              <!-- 由 app.js 动态渲染 -->
-            </div>
-
-            <!-- 图例与当前选中提示 -->
-            <div class="grid-footer-bar">
-              <div class="grid-legend">
-                <span><i class="legend-dot legend-dot--avail"></i>可选</span>
-                <span><i class="legend-dot legend-dot--selected"></i>已选</span>
-                <span><i class="legend-dot legend-dot--taken"></i>已占</span>
-              </div>
-              <span class="selected-preview-text" id="manualSelectedHint">已选：<strong>052819</strong></span>
-            </div>
-          </div>
-
-          <!-- 模式 2：系统随机分配 -->
-          <div class="mode-panel" id="panelRandom" role="tabpanel" aria-labelledby="tabRandom" hidden>
-            <div class="random-card">
-              <div class="random-badge-row">
-                <span class="random-pill">官方唯一发号池</span>
-                <span class="random-range">范围 000001 - 100000</span>
-              </div>
-              <div class="random-slots" id="randomSlots" aria-label="随机分配号码预览">
-                <span>?</span>
-                <span>?</span>
-                <span>?</span>
-                <span>?</span>
-                <span>?</span>
-                <span>?</span>
-              </div>
-              <p class="random-desc" id="randomDesc">
-                点击下方「立即锁定号码」并完成注册/登录后，系统将从当前剩余号池中为您自动分配 <strong>1 个唯一 6 位幸运号码</strong>，防重防并发冲突。
-              </p>
-              <button class="random-roll-btn" id="rollPreviewBtn" type="button">
-                🎲 先试摇一个幸运号看看
-              </button>
-            </div>
-          </div>
-
-          <!-- 渠道归因轻量提示（PRD R01 / R06） -->
-          <div class="channel-bar" id="channelBar">
-            <span class="channel-bar-left">
-              <span class="channel-dot"></span>
-              <span>来源</span>
-            </span>
-            <strong class="channel-bar-value" id="channelKolLabel">博主 KOL_Tavares44</strong>
-          </div>
-
-          <!-- 主行动按钮：立即锁定号码 -->
-          <button class="cta-btn" id="lockNumberBtn" type="button">
-            <span class="cta-left">
-              <span class="cta-arrow-circle" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="13 6 19 12 13 18" />
-                </svg>
-              </span>
-              <span class="cta-text-group">
-                <span class="cta-title">立即锁定号码</span>
-                <span class="cta-trust" id="ctaSubtext">
-                  <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
-                    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm-1.2 14.2L7 12.4l1.4-1.4 2.4 2.4 5-5L17.2 9.8Z" />
-                  </svg>
-                  <span>免费参与 · 注册/登录后生效</span>
-                </span>
-              </span>
-            </span>
-            <span class="cta-right">
-              <span class="cta-unit" id="ctaRightLabel">当前已选</span>
-              <span class="cta-total" id="ctaRightValue">052819</span>
-            </span>
-          </button>
-        </section>
-
-        <!-- 幸运中奖号码 / 开奖公示区（PRD R04） -->
-        <section class="prizes-section" id="prizesSection" aria-label="幸运中奖号码公示">
-          <div class="prizes-header">
-            <h2 class="prizes-title">
-              <span class="trophy-emoji" aria-hidden="true">🏆</span>
-              <span>幸运中奖号码</span>
-            </h2>
-            <span class="prizes-count-badge" id="prizesCountBadge">2/8</span>
-          </div>
-
-          <ul class="prizes-list" id="prizesList">
-            <!-- 由 app.js 渲染 -->
-          </ul>
-        </section>
-      </div>
-    </main>
-
-    <!-- 页脚 -->
-    <footer class="app-footer">
-      <p class="footer-copy">2026 合作平台 × 塔瓦雷斯活动方 © - 保留所有权利。</p>
-      <div class="footer-links-row">
-        <button class="footer-link-btn" id="footerRulesBtn" type="button">活动规则</button>
-        <span>·</span>
-        <button class="footer-link-btn" id="openAttributionInfoBtn" type="button">注册与渠道说明</button>
-        <span>·</span>
-        <button class="footer-link-btn" id="openSelfExclusionBtn" type="button">自我排除机制</button>
-      </div>
-      <div class="safe-badge" id="safeBadgeBtn" role="button" tabindex="0" aria-label="点击核验安全网站认证">
-        <div class="safe-badge-lock" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#1d8a4e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="4" y="11" width="16" height="10" rx="2" />
-            <path d="M8 11V7a4 4 0 0 1 8 0v4" />
-          </svg>
-        </div>
-        <div class="safe-badge-text">
-          <span class="safe-badge-top">安全网站认证</span>
-          <span class="safe-badge-brand">Google 安全浏览</span>
-          <span class="safe-badge-sub">点击查看安全核验</span>
-        </div>
-      </div>
-    </footer>
-  </div>
-
-  <!-- 1. 平台前台登录 / 注册全屏页面（按客户平台实际截图 1:1 制作，对应 PRD R01） -->
-  <div class="modal-backdrop modal-backdrop--authpage" id="authPageModal" hidden role="dialog" aria-modal="true" aria-label="平台注册与登录">
-    <div class="auth-page-sheet">
-      <!-- 顶部轻几何光束背景装饰 -->
-      <div class="auth-bg-decor" aria-hidden="true"></div>
-
-      <!-- 左上角返回按钮 -->
-      <div class="auth-topbar">
-        <button class="auth-back-btn" id="closeAuthPageBtn" type="button" aria-label="返回活动页">
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </button>
-      </div>
-
-      <!-- 顶部双标签：注册 | 登录 -->
-      <div class="auth-tabs" role="tablist" aria-label="注册或登录切换">
-        <button
-          class="auth-tab is-active"
-          id="authTabRegister"
-          type="button"
-          role="tab"
-          aria-selected="true"
-          aria-controls="authPanelRegister"
-        >
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
-            <path d="M12 12a4.2 4.2 0 1 0-4.2-4.2A4.2 4.2 0 0 0 12 12Zm-7 8a6.8 6.8 0 0 1 11.4-5 .8.8 0 0 1-.55 1.38A5.2 5.2 0 0 0 6.8 20Zm13-5v-2h-2v-1.6h2v-2h1.6v2h2V13h-2v2Z" />
-          </svg>
-          <span>注册</span>
-        </button>
-
-        <button
-          class="auth-tab"
-          id="authTabLogin"
-          type="button"
-          role="tab"
-          aria-selected="false"
-          aria-controls="authPanelLogin"
-        >
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
-            <path d="M11 7 9.6 8.4l2.6 2.6H3v2h9.2l-2.6 2.6L11 17l5-5-5-5Zm9 12h-8v2h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-8v2h8v14Z" />
-          </svg>
-          <span>登录</span>
-        </button>
-      </div>
-
-      <!-- 面板 1：注册（完全按截图字段与提示制作） -->
-      <form class="auth-form-panel" id="authPanelRegister" role="tabpanel" aria-labelledby="authTabRegister" novalidate>
-        <p class="auth-form-hint">支持手机号码/账号注册</p>
-
-        <!-- 输入框 1：手机号码/账号 -->
-        <div class="auth-input-box" data-input-wrap>
-          <span class="auth-input-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor">
-              <path d="M12 12a4.5 4.5 0 1 0-4.5-4.5A4.5 4.5 0 0 0 12 12Zm0 2c-4.1 0-7.5 2.2-7.5 5v1h15v-1c0-2.8-3.4-5-7.5-5Z" />
-            </svg>
-          </span>
-          <div class="auth-input-inner">
-            <input type="text" id="regAccountInput" class="auth-field-input" autocomplete="username" />
-            <span class="auth-placeholder"><em class="req-star">*</em>请输入手机号码/账号</span>
-          </div>
-        </div>
-
-        <!-- 输入框 2：密码 + 显隐切换 -->
-        <div class="auth-input-box" data-input-wrap>
-          <span class="auth-input-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-              <path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2Zm-7-2a2 2 0 1 1 4 0v2h-4V7Z" />
-            </svg>
-          </span>
-          <div class="auth-input-inner">
-            <input type="text" id="regPasswordInput" class="auth-field-input" autocomplete="new-password" />
-            <span class="auth-placeholder"><em class="req-star">*</em>请输入密码</span>
-          </div>
-          <button class="auth-eye-btn is-visible" type="button" data-toggle-pwd="regPasswordInput" aria-label="切换密码可见性">
-            <svg class="icon-eye-open" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-              <path d="M12 5C6.5 5 2.2 8.4 1 12c1.2 3.6 5.5 7 11 7s9.8-3.4 11-7c-1.2-3.6-5.5-7-11-7Zm0 11a4 4 0 1 1 4-4 4 4 0 0 1-4 4Zm0-6.4A2.4 2.4 0 1 0 14.4 12 2.4 2.4 0 0 0 12 9.6Z" />
-            </svg>
-            <svg class="icon-eye-off" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-              <path d="M3.27 2 2 3.27l3.1 3.1A11.8 11.8 0 0 0 1 12c1.2 3.6 5.5 7 11 7a11.3 11.3 0 0 0 5.12-1.2L20.73 21 22 19.73 3.27 2ZM12 16a4 4 0 0 1-4-4c0-.66.16-1.28.45-1.82l1.62 1.62A2.37 2.37 0 0 0 12 14.4a2.37 2.37 0 0 0 1.2-.33l1.62 1.62A3.95 3.95 0 0 1 12 16Zm0-11c-1.56 0-3.04.28-4.38.77l1.7 1.7A8.8 8.8 0 0 1 12 7a8.9 8.9 0 0 1 8.5 5 9.9 9.9 0 0 1-2.55 3.45l1.43 1.43A11.7 11.7 0 0 0 23 12c-1.2-3.6-5.5-7-11-7Z" />
-            </svg>
-          </button>
-        </div>
-
-        <!-- 密码强度四段指示条 -->
-        <div class="pwd-strength-row" aria-label="密码强度">
-          <span class="pwd-strength-label">密码强度</span>
-          <div class="pwd-strength-bars" id="pwdStrengthBars">
-            <span class="pwd-bar"></span>
-            <span class="pwd-bar"></span>
-            <span class="pwd-bar"></span>
-            <span class="pwd-bar"></span>
-          </div>
-        </div>
-
-        <!-- 输入框 3：真实姓名 -->
-        <div class="auth-input-box" data-input-wrap>
-          <span class="auth-input-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor">
-              <path d="M20 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2ZM9 10a2 2 0 1 1-2 2 2 2 0 0 1 2-2Zm4 6H5v-.8c0-1.5 2.7-2.2 4-2.2s4 .7 4 2.2V16Zm6-2h-4v-1.5h4V14Zm0-3h-4V9.5h4V11Z" />
-            </svg>
-          </span>
-          <div class="auth-input-inner">
-            <input type="text" id="regRealNameInput" class="auth-field-input" autocomplete="name" />
-            <span class="auth-placeholder"><em class="req-star">*</em>请输入真实姓名</span>
-          </div>
-        </div>
-
-        <!-- 真实姓名提示 -->
-        <p class="auth-amber-tip auth-amber-tip--icon">
-          <span class="amber-bang" aria-hidden="true">!</span>
-          <span>请确保与提款银行账户同名，否则将无法到账</span>
-        </p>
-
-        <!-- 币种下拉选择框 -->
-        <div class="currency-dropdown" id="currencyDropdown">
-          <button
-            type="button"
-            class="currency-trigger"
-            id="currencyTrigger"
-            aria-haspopup="listbox"
-            aria-expanded="false"
-          >
-            <span class="currency-trigger-left">
-              <span class="currency-flag" id="selectedCurrencyFlag" aria-hidden="true"></span>
-              <span class="currency-label" id="selectedCurrencyLabel">USD(美元)</span>
-            </span>
-            <svg class="currency-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </button>
-          <ul class="currency-menu" id="currencyMenu" role="listbox" hidden>
-            <!-- 由 app.js 渲染 -->
-          </ul>
-        </div>
-
-        <!-- 币种提示 -->
-        <p class="auth-amber-tip">币种影响游戏币种和支付方式，且不能修改哦!</p>
-
-        <!-- 18岁与用户协议勾选 -->
-        <label class="auth-checkbox-row">
-          <input type="checkbox" id="regAgreeCheckbox" class="auth-checkbox-native" checked />
-          <span class="auth-checkbox-box" aria-hidden="true">
-            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 8.5 6.5 12 13 4.5" />
-            </svg>
-          </span>
-          <span class="auth-checkbox-text">
-            我已年满18岁并已阅读并同意
-            <button type="button" class="auth-inline-link" id="openAgreementBtn">《用户协议》</button>
-          </span>
-        </label>
-
-        <!-- 蓝色主按钮：注册 -->
-        <button class="auth-primary-btn" type="submit">注册</button>
-
-        <!-- 底部链接：联系客服 | 免费试玩 -->
-        <div class="auth-bottom-links auth-bottom-links--two">
-          <button type="button" class="auth-footer-link" data-auth-action="support">联系客服</button>
-          <button type="button" class="auth-footer-link" data-auth-action="trial">免费试玩</button>
-        </div>
-      </form>
-
-      <!-- 面板 2：登录（完全按截图字段与提示制作） -->
-      <form class="auth-form-panel" id="authPanelLogin" role="tabpanel" aria-labelledby="authTabLogin" hidden novalidate>
-        <p class="auth-form-hint">支持手机号码/账号登录</p>
-
-        <!-- 输入框 1：手机号码/账号 -->
-        <div class="auth-input-box" data-input-wrap>
-          <span class="auth-input-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="19" height="19" fill="currentColor">
-              <path d="M12 12a4.5 4.5 0 1 0-4.5-4.5A4.5 4.5 0 0 0 12 12Zm0 2c-4.1 0-7.5 2.2-7.5 5v1h15v-1c0-2.8-3.4-5-7.5-5Z" />
-            </svg>
-          </span>
-          <div class="auth-input-inner">
-            <input type="text" id="loginAccountInput" class="auth-field-input" autocomplete="username" />
-            <span class="auth-placeholder"><em class="req-star">*</em>请输入手机号码/账号</span>
-          </div>
-        </div>
-
-        <!-- 输入框 2：登录密码 + 显隐切换 -->
-        <div class="auth-input-box" data-input-wrap>
-          <span class="auth-input-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-              <path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2Zm-7-2a2 2 0 1 1 4 0v2h-4V7Z" />
-            </svg>
-          </span>
-          <div class="auth-input-inner">
-            <input type="password" id="loginPasswordInput" class="auth-field-input" autocomplete="current-password" />
-            <span class="auth-placeholder"><em class="req-star">*</em>请输入登录密码</span>
-          </div>
-          <button class="auth-eye-btn" type="button" data-toggle-pwd="loginPasswordInput" aria-label="切换登录密码可见性">
-            <svg class="icon-eye-open" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-              <path d="M12 5C6.5 5 2.2 8.4 1 12c1.2 3.6 5.5 7 11 7s9.8-3.4 11-7c-1.2-3.6-5.5-7-11-7Zm0 11a4 4 0 1 1 4-4 4 4 0 0 1-4 4Zm0-6.4A2.4 2.4 0 1 0 14.4 12 2.4 2.4 0 0 0 12 9.6Z" />
-            </svg>
-            <svg class="icon-eye-off" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-              <path d="M3.27 2 2 3.27l3.1 3.1A11.8 11.8 0 0 0 1 12c1.2 3.6 5.5 7 11 7a11.3 11.3 0 0 0 5.12-1.2L20.73 21 22 19.73 3.27 2ZM12 16a4 4 0 0 1-4-4c0-.66.16-1.28.45-1.82l1.62 1.62A2.37 2.37 0 0 0 12 14.4a2.37 2.37 0 0 0 1.2-.33l1.62 1.62A3.95 3.95 0 0 1 12 16Zm0-11c-1.56 0-3.04.28-4.38.77l1.7 1.7A8.8 8.8 0 0 1 12 7a8.9 8.9 0 0 1 8.5 5 9.9 9.9 0 0 1-2.55 3.45l1.43 1.43A11.7 11.7 0 0 0 23 12c-1.2-3.6-5.5-7-11-7Z" />
-            </svg>
-          </button>
-        </div>
-
-        <!-- 记住账号密码 -->
-        <label class="auth-checkbox-row auth-checkbox-row--login">
-          <input type="checkbox" id="rememberAccountCheckbox" class="auth-checkbox-native" checked />
-          <span class="auth-checkbox-box" aria-hidden="true">
-            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 8.5 6.5 12 13 4.5" />
-            </svg>
-          </span>
-          <span class="auth-checkbox-text">记住账号密码</span>
-        </label>
-
-        <!-- 蓝色主按钮：登录 -->
-        <button class="auth-primary-btn" type="submit">登录</button>
-
-        <!-- 底部链接：联系客服 | 免费试玩 | 忘记密码 -->
-        <div class="auth-bottom-links auth-bottom-links--three">
-          <button type="button" class="auth-footer-link" data-auth-action="support">联系客服</button>
-          <button type="button" class="auth-footer-link" data-auth-action="trial">免费试玩</button>
-          <button type="button" class="auth-footer-link" data-auth-action="forgot">忘记密码</button>
-        </div>
-      </form>
+  <!-- 顶部导航栏 -->
+  <header class="top-nav">
+    <div class="top-nav-inner">
+      <div class="top-brand">包网 需求与原型</div>
+      <nav class="top-links" aria-label="视图切换">
+        <button type="button" class="top-link is-active" id="navListBtn" data-view="list">需求清单</button>
+        <button type="button" class="top-link" id="navAcceptBtn" data-view="acceptance">版本验收</button>
+      </nav>
     </div>
-  </div>
+  </header>
 
-  <!-- 3. 锁定成功弹窗 -->
-  <div class="modal-backdrop" id="lockSuccessModal" hidden role="dialog" aria-modal="true" aria-labelledby="lockSuccessTitle">
-    <div class="white-modal">
-      <div class="white-modal-header">
-        <div class="modal-title-wrap">
-          <span class="modal-icon-box modal-icon-box--green" aria-hidden="true">🎉</span>
-          <div>
-            <h3 id="lockSuccessTitle">抽奖号码锁定成功！</h3>
-            <p>已计入本期有效参与池并同步更新进度</p>
-          </div>
+  <main class="page-main">
+    <!-- 视图 1：包网需求清单 -->
+    <section class="catalog-card" id="viewList" aria-label="包网需求清单">
+      <div class="card-header">
+        <div class="card-header-left">
+          <h1 class="card-title">包网需求清单</h1>
+          <span class="card-counter" id="countSummary">展示 2 / 共 2 条</span>
         </div>
-        <button class="modal-x-btn" data-close-modal="lockSuccessModal" type="button" aria-label="关闭窗口">×</button>
+        <div class="card-header-tip">点版本行展开，点具体需求进入原型。</div>
       </div>
 
-      <div class="locked-ticket-showcase">
-        <div class="locked-ticket-label">您的专属有效抽奖号码</div>
-        <div class="locked-ticket-code" id="lockedTicketNumber" title="点击复制号码">052819</div>
-        <div class="locked-ticket-meta" id="lockedTicketMeta">
-          状态：有效 · 方式：手动选择 · 账号：UID_904821
+      <!-- 筛选栏 -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label class="filter-label" for="filterProject">项目</label>
+          <select class="filter-select" id="filterProject" aria-label="按项目筛选">
+            <option value="all">全部</option>
+            <option value="包网">包网</option>
+          </select>
+        </div>
+
+        <div class="filter-pills" id="clientPills" role="group" aria-label="按端筛选">
+          <button type="button" class="pill-btn is-active" data-client="all">全部</button>
+          <button type="button" class="pill-btn" data-client="H5">H5</button>
+          <button type="button" class="pill-btn" data-client="Web">Web</button>
+          <button type="button" class="pill-btn" data-client="站点后台">站点后台</button>
+        </div>
+
+        <div class="filter-date-group">
+          <span class="filter-label">提出日期</span>
+          <select class="date-select" id="createdYear" aria-label="提出年份">
+            <option value="">年</option>
+            <option value="2026">2026</option>
+          </select>
+          <span class="date-sep">/</span>
+          <select class="date-select" id="createdMonth" aria-label="提出月份">
+            <option value="">月</option>
+            <option value="11">11</option>
+          </select>
+          <span class="date-sep">/</span>
+          <select class="date-select" id="createdDay" aria-label="提出日期">
+            <option value="">日</option>
+            <option value="18">18</option>
+          </select>
+        </div>
+
+        <div class="filter-date-group">
+          <span class="filter-label">最近修改日期</span>
+          <select class="date-select" id="updatedYear" aria-label="修改年份">
+            <option value="">年</option>
+            <option value="2026">2026</option>
+          </select>
+          <span class="date-sep">/</span>
+          <select class="date-select" id="updatedMonth" aria-label="修改月份">
+            <option value="">月</option>
+            <option value="11">11</option>
+          </select>
+          <span class="date-sep">/</span>
+          <select class="date-select" id="updatedDay" aria-label="修改日期">
+            <option value="">日</option>
+            <option value="21">21</option>
+          </select>
+        </div>
+
+        <div class="filter-date-group">
+          <span class="filter-label">截止</span>
+          <select class="date-select" id="dueYear" aria-label="截止年份">
+            <option value="">年</option>
+            <option value="2026">2026</option>
+          </select>
+          <span class="date-sep">/</span>
+          <select class="date-select" id="dueMonth" aria-label="截止月份">
+            <option value="">月</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+          </select>
+          <span class="date-sep">/</span>
+          <select class="date-select" id="dueDay" aria-label="截止日期">
+            <option value="">日</option>
+            <option value="30">30</option>
+          </select>
+        </div>
+
+        <div class="filter-search-group">
+          <input
+            type="text"
+            class="search-input"
+            id="searchInput"
+            placeholder="搜索需求"
+            aria-label="搜索需求名称或版本号"
+          />
+          <button type="button" class="reset-btn" id="resetFilterBtn">重置</button>
         </div>
       </div>
 
-      <div class="order-summary-card" id="lockAttributionSummary">
-        <!-- 由 app.js 填充归因与时间信息 -->
+      <!-- 需求清单表格 -->
+      <div class="table-wrap">
+        <table class="req-table">
+          <thead>
+            <tr>
+              <th class="col-ver">需求版本号</th>
+              <th class="col-name">需求名称</th>
+              <th class="col-proj">项目</th>
+              <th class="col-client">端</th>
+              <th class="col-date">提出日期</th>
+              <th class="col-date">最近修改日期</th>
+              <th class="col-due">截止</th>
+            </tr>
+          </thead>
+          <tbody id="reqTableBody">
+            <!-- 由 catalog.js 渲染 -->
+          </tbody>
+        </table>
       </div>
+    </section>
 
-      <div class="success-actions">
-        <button class="btn-green-full" id="openMyTicketsFromSuccessBtn" type="button">前往「我的号码」查看记录</button>
-        <button class="btn-light-full" data-close-modal="lockSuccessModal" type="button">返回活动首页</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 4. 我的号码查询弹窗（PRD R02：展示本人号码、获得时间和状态，支持账号查询） -->
-  <div class="modal-backdrop" id="ticketsModal" hidden role="dialog" aria-modal="true" aria-labelledby="ticketsModalTitle">
-    <div class="white-modal">
-      <div class="white-modal-header">
-        <div class="modal-title-wrap">
-          <span class="modal-icon-box" aria-hidden="true">🎟️</span>
-          <div>
-            <h3 id="ticketsModalTitle">我的抽奖号码</h3>
-            <p>查看名下号码、获得时间与开奖中奖状态</p>
-          </div>
+    <!-- 视图 2：版本验收（对应 PRD R01-R07 验收项） -->
+    <section class="catalog-card" id="viewAcceptance" hidden aria-label="版本验收清单">
+      <div class="card-header">
+        <div class="card-header-left">
+          <h1 class="card-title">V1.0.0 版本验收清单</h1>
+          <span class="card-counter" id="acceptProgressText">已完成 0 / 7 项</span>
         </div>
-        <button class="modal-x-btn" data-close-modal="ticketsModal" type="button" aria-label="关闭查询窗口">×</button>
-      </div>
-
-      <div class="security-alert-box">
-        <div class="security-alert-title">⚠️ 安全提示：免费参与，谨防诈骗</div>
-        <ul>
-          <li>本活动无需任何购号费用，领奖不收取手续费。</li>
-          <li>我们不会发起视频通话，也不会索要您的屏幕共享权限。</li>
-          <li>开奖结果与兑奖通知仅以本网站及平台官方渠道为准。</li>
-        </ul>
-      </div>
-
-      <div id="lookupResultArea"></div>
-    </div>
-  </div>
-
-  <!-- 5. 活动规则弹窗（PRD R02 / R03 / R04 / 4.1 明确披露） -->
-  <div class="modal-backdrop" id="rulesModal" hidden role="dialog" aria-modal="true" aria-labelledby="rulesModalTitle">
-    <div class="white-modal">
-      <div class="white-modal-header">
-        <div class="modal-title-wrap">
-          <span class="modal-icon-box" aria-hidden="true">📋</span>
-          <div>
-            <h3 id="rulesModalTitle">活动规则与开奖说明</h3>
-            <p>第 202601 期 · 规则版本 v1.0</p>
-          </div>
-        </div>
-        <button class="modal-x-btn" data-close-modal="rulesModal" type="button" aria-label="关闭规则窗口">×</button>
-      </div>
-
-      <div class="support-list">
-        <div class="support-item">
-          <strong>1. 参与方式与资格（无需购买）</strong>
-          <p>用户可在页面手动选择 6 位幸运号码或选择「系统随机分配」，点击「立即锁定号码」并完成平台账号注册/登录后即可免费领取有效号码（本期每人限领 1 个唯一号码，重复提交返回原结果）。</p>
-        </div>
-        <div class="support-item">
-          <strong>2. 活动进度与满额锁定</strong>
-          <p>进度 = 本期有效号码数 ÷ 100,000 × 100%（待确认与作废号码不计入；未满额不会进位为 100%）。有效号码达到 100% 后自动停止发号、锁定号码清单并进入「待开奖」状态。</p>
-        </div>
-        <div class="support-item">
-          <strong>3. 开奖公示与领奖方式</strong>
-          <p>开奖状态依次为：进行中 → 待开奖 → 已开奖。开奖完成后将在本页公示中奖号码、奖项与开奖时间，中奖用户由官方客服按平台实名账号联系核验领奖。</p>
-        </div>
-        <div class="support-item">
-          <strong>4. 主办方与平台关系说明</strong>
-          <p>本期活动由「塔瓦雷斯活动方」主办，依托官方合作平台提供账号注册、登录及号码归属记录服务；注册操作直跳平台现有前台注册页完成。</p>
+        <div class="accept-header-actions">
+          <a href="h5.html" class="quick-proto-link">打开 H5 原型 ↗</a>
+          <a href="admin.html" class="quick-proto-link quick-proto-link--dark">打开站点后台原型 ↗</a>
         </div>
       </div>
 
-      <button class="btn-green-full" data-close-modal="rulesModal" type="button">我知道了</button>
-    </div>
-  </div>
-
-  <!-- 6. 在线客服弹窗 -->
-  <div class="modal-backdrop" id="supportModal" hidden role="dialog" aria-modal="true" aria-labelledby="supportModalTitle">
-    <div class="white-modal">
-      <div class="white-modal-header">
-        <div class="modal-title-wrap">
-          <span class="modal-icon-box" aria-hidden="true">💬</span>
-          <div>
-            <h3 id="supportModalTitle">官方在线客服</h3>
-            <p>服务时间：每日 09:00 - 22:00</p>
-          </div>
-        </div>
-        <button class="modal-x-btn" data-close-modal="supportModal" type="button" aria-label="关闭客服窗口">×</button>
+      <div class="accept-list" id="acceptList">
+        <!-- 由 catalog.js 渲染 -->
       </div>
+    </section>
+  </main>
 
-      <div class="support-list">
-        <div class="support-item">
-          <strong>为什么点击锁定号码需要注册/登录？</strong>
-          <p>为保证每个抽奖号码唯一归属并可随时核验，系统需绑定您的官方平台账号 ID，注册将直跳平台现有前台注册页完成。</p>
-        </div>
-        <div class="support-item">
-          <strong>如何查询已锁定的号码？</strong>
-          <p>点击首页「我的号码」，系统将自动展示当前登录账号的有效号码、获取时间与状态，也可凭手机号或账号 ID 查询。</p>
-        </div>
-        <div class="support-item">
-          <strong>官方防骗提醒</strong>
-          <p>本活动免费参与，任何以「中奖需缴纳手续费/保证金」为由的联系均为诈骗。</p>
-        </div>
-      </div>
-      <button class="btn-green-full" data-close-modal="supportModal" type="button">我知道了</button>
-    </div>
-  </div>
-
-  <!-- 7. 通用信息弹窗 -->
-  <div class="modal-backdrop" id="infoModal" hidden role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
-    <div class="white-modal">
-      <div class="white-modal-header">
-        <div class="modal-title-wrap">
-          <span class="modal-icon-box" id="infoModalIcon" aria-hidden="true">ℹ️</span>
-          <div>
-            <h3 id="infoModalTitle">提示信息</h3>
-            <p id="infoModalSub">官方说明</p>
-          </div>
-        </div>
-        <button class="modal-x-btn" data-close-modal="infoModal" type="button" aria-label="关闭弹窗">×</button>
-      </div>
-      <div class="info-modal-body" id="infoModalBody"></div>
-      <button class="btn-dark-full" data-close-modal="infoModal" type="button">关闭</button>
-    </div>
-  </div>
-
-  <!-- 轻量 Toast 提示 -->
-  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
-
-  <script src="app.js"></script>
+  <script src="catalog.js"></script>
 </body>
 </html>

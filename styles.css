@@ -52,6 +52,37 @@ button {
   cursor: pointer;
 }
 
+/* 桌面端左上角返回目录快捷胶囊（不遮挡 H5 画布） */
+.prototype-back-fab {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(17, 24, 39, 0.86);
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 8px 13px;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  transition: background-color 0.15s ease, transform 0.12s ease;
+}
+
+.prototype-back-fab:hover {
+  background: #111827;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 720px) {
+  .prototype-back-fab {
+    display: none;
+  }
+}
+
 /* 移动端优先画布：桌面端居中 430px，移动端全宽 */
 .app-shell {
   width: 100%;

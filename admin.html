@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>包网站点后台 :: 编号抽奖活动管理与博主推广结算</title>
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- 左侧菜单栏 -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-brand">
+        <span class="sidebar-logo">包</span>
+        <div>
+          <div class="sidebar-title">包网站点后台</div>
+          <div class="sidebar-sub">编号抽奖与推广结算</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="后台模块导航">
+        <button type="button" class="side-nav-item is-active" data-tab="activities">
+          <span class="side-icon">🎯</span>
+          <span>活动管理与配置</span>
+        </button>
+        <button type="button" class="side-nav-item" data-tab="tickets">
+          <span class="side-icon">🎟️</span>
+          <span>号码记录与开奖</span>
+        </button>
+        <button type="button" class="side-nav-item" data-tab="channels">
+          <span class="side-icon">📢</span>
+          <span>博主渠道与归因</span>
+        </button>
+        <button type="button" class="side-nav-item" data-tab="settlement">
+          <span class="side-icon">💰</span>
+          <span>推广结算对账</span>
+        </button>
+        <button type="button" class="side-nav-item" data-tab="logs">
+          <span class="side-icon">🧾</span>
+          <span>操作审计日志</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="index.html" class="sidebar-back-link">← 返回包网需求清单</a>
+      </div>
+    </aside>
+
+    <!-- 右侧主工作区 -->
+    <div class="admin-main">
+      <!-- 顶部栏 -->
+      <header class="admin-topbar">
+        <div class="topbar-left">
+          <a href="index.html" class="topbar-back-chip">← 需求清单</a>
+          <span class="topbar-sep">/</span>
+          <span class="topbar-current" id="topbarTitle">活动管理与配置</span>
+        </div>
+
+        <div class="topbar-right">
+          <div class="role-switcher" title="切换当前后台账号角色以验证 R05 权限控制">
+            <label for="roleSelect">当前角色：</label>
+            <select id="roleSelect" class="role-select">
+              <option value="ops">运营管理员（配置/渠道）</option>
+              <option value="draw">开奖授权员（执行开奖）</option>
+              <option value="finance">财务审核员（确认/付款）</option>
+            </select>
+          </div>
+          <a href="h5.html" class="btn-outline-sm" target="_blank" rel="noopener">预览 H5 活动页 ↗</a>
+        </div>
+      </header>
+
+      <div class="admin-content">
+        <!-- ================= 模块 1：活动管理与配置 (R03 / R05) ================= -->
+        <section class="admin-section" id="tab-activities">
+          <div class="kpi-grid" id="activityKpis">
+            <!-- 由 admin.js 渲染 -->
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-head">
+              <div>
+                <h2>编号抽奖活动期次列表</h2>
+                <p>状态流转：草稿 → 进行中 → 待开奖 → 已开奖（发布后核心规则版本自动冻结）</p>
+              </div>
+              <div class="panel-actions">
+                <button type="button" class="btn-secondary" id="simulateFullBtn">模拟满额锁池（100%）</button>
+                <button type="button" class="btn-primary" id="openCreateActivityBtn">+ 新建活动期次</button>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>期次 / 活动名称</th>
+                    <th>主办方</th>
+                    <th>号码范围（位数）</th>
+                    <th>有效进度（已发/总量）</th>
+                    <th>活动时间</th>
+                    <th>规则版本</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="activityTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= 模块 2：号码记录与开奖 (R02 / R04) ================= -->
+        <section class="admin-section" id="tab-tickets" hidden>
+          <!-- 开奖与公示控制面板 -->
+          <div class="panel-card draw-panel">
+            <div class="panel-head">
+              <div>
+                <h2>第 202601 期 · 开奖触发与公示控制（R04）</h2>
+                <p id="drawStatusDesc">当前活动进行中，有效号码满 100% 锁定号码池后方可由「开奖授权员」执行开奖。</p>
+              </div>
+              <div class="panel-actions">
+                <button type="button" class="btn-secondary" id="lockPoolFromDrawBtn">锁定号码池（进入待开奖）</button>
+                <button type="button" class="btn-primary" id="triggerDrawBtn">执行开奖并前台公示</button>
+              </div>
+            </div>
+
+            <div class="draw-meta-grid" id="drawMetaGrid"></div>
+          </div>
+
+          <!-- 号码明细查询表 -->
+          <div class="panel-card">
+            <div class="panel-head">
+              <div>
+                <h2>号码发放明细（实时同步 H5 端领号记录）</h2>
+                <p>支持按账号 ID、6 位号码、状态检索；仅「有效」号码计入进度与开奖，作废需留存原因。</p>
+              </div>
+            </div>
+
+            <div class="toolbar-row">
+              <input type="text" id="ticketSearchInput" class="input-sm" placeholder="搜索 6位号码 / 账号ID / 手机号" />
+              <select id="ticketStatusFilter" class="input-sm">
+                <option value="all">全部状态</option>
+                <option value="有效">有效</option>
+                <option value="待确认">待确认</option>
+                <option value="作废">作废</option>
+              </select>
+              <button type="button" class="btn-secondary" id="refreshTicketsBtn">刷新同步 H5 数据</button>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>参与记录 ID</th>
+                    <th>抽奖号码</th>
+                    <th>账号 / 账号ID</th>
+                    <th>获取方式</th>
+                    <th>来源博主</th>
+                    <th>获得时间</th>
+                    <th>号码状态</th>
+                    <th>开奖状态</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="ticketsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= 模块 3：博主渠道与归因 (R06) ================= -->
+        <section class="admin-section" id="tab-channels" hidden>
+          <div class="panel-card">
+            <div class="panel-head">
+              <div>
+                <h2>博主推广渠道管理（R06）</h2>
+                <p>专属链接绑定活动与博主 ID，分别统计点击量、注册成功量与有效注册量。</p>
+              </div>
+              <div class="panel-actions">
+                <button type="button" class="btn-primary" id="openAddKolBtn">+ 新增博主渠道</button>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>博主标识 (kol_id)</th>
+                    <th>博主名称</th>
+                    <th>专属活动链接</th>
+                    <th>点击量</th>
+                    <th>注册成功量</th>
+                    <th>有效注册量</th>
+                    <th>渠道状态</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="kolTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-head">
+              <div>
+                <h2>注册归因转化明细</h2>
+                <p>归因口径：窗口内最后一次有效博主来源；同一账号仅计一次，老账号登录不计入新增注册。</p>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>平台账号 ID</th>
+                    <th>注册/登录账号</th>
+                    <th>活动 ID</th>
+                    <th>命中博主</th>
+                    <th>转化时间</th>
+                    <th>归因判定</th>
+                    <th>排除原因</th>
+                  </tr>
+                </thead>
+                <tbody id="attributionTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= 模块 4：推广结算对账 (R07) ================= -->
+        <section class="admin-section" id="tab-settlement" hidden>
+          <div class="panel-card">
+            <div class="panel-head">
+              <div>
+                <h2>博主推广结算单（R07）</h2>
+                <p>状态流转：待核对 → 已确认（锁定明细与费率版本）→ 已付款；仅「财务审核员」可执行确认与付款登记。</p>
+              </div>
+              <div class="panel-actions">
+                <button type="button" class="btn-secondary" id="exportCsvBtn">导出对账单 CSV</button>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>结算单号</th>
+                    <th>博主 / 活动</th>
+                    <th>结算周期</th>
+                    <th>费率版本 / 单价</th>
+                    <th>有效注册数</th>
+                    <th>调账金额</th>
+                    <th>应付总额</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="settlementTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel-card" id="settlementDetailCard">
+            <div class="panel-head">
+              <div>
+                <h2 id="settlementDetailTitle">结算明细与调整记录</h2>
+                <p id="settlementDetailSub">点击上方结算单「查看明细」可核对计费明细、费率版本、调账原因与付款凭证。</p>
+              </div>
+            </div>
+            <div id="settlementDetailBody" class="detail-box"></div>
+          </div>
+        </section>
+
+        <!-- ================= 模块 5：操作审计日志 (R05) ================= -->
+        <section class="admin-section" id="tab-logs" hidden>
+          <div class="panel-card">
+            <div class="panel-head">
+              <div>
+                <h2>后台操作审计日志（R05）</h2>
+                <p>全量记录活动发布、规则变更、号码作废、开奖触发、结算确认、调账及付款登记操作者与时间。</p>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>操作时间</th>
+                    <th>操作角色</th>
+                    <th>所属模块</th>
+                    <th>操作动作</th>
+                    <th>详情与原因留痕</th>
+                  </tr>
+                </thead>
+                <tbody id="auditLogsBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- 弹窗：新建 / 编辑活动配置 -->
+  <div class="modal-mask" id="activityModal" hidden>
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3 id="activityModalTitle">新建活动期次</h3>
+        <button type="button" class="modal-close" data-close="activityModal">×</button>
+      </div>
+      <form id="activityForm" class="modal-form">
+        <div class="form-grid">
+          <label class="f-item">
+            <span>活动名称 *</span>
+            <input type="text" id="actName" required placeholder="例如：本田 Fan 160 2025" />
+          </label>
+          <label class="f-item">
+            <span>活动期次 *</span>
+            <input type="text" id="actRound" required placeholder="例如：第 202602 期" />
+          </label>
+          <label class="f-item">
+            <span>主办方 *</span>
+            <input type="text" id="actSponsor" required value="塔瓦雷斯活动方" />
+          </label>
+          <label class="f-item">
+            <span>号码总量 *</span>
+            <input type="number" id="actTotal" required min="100" value="100000" />
+          </label>
+          <label class="f-item">
+            <span>开始时间 *</span>
+            <input type="datetime-local" id="actStart" required value="2026-11-22T00:00" />
+          </label>
+          <label class="f-item">
+            <span>截止时间 *</span>
+            <input type="datetime-local" id="actEnd" required value="2026-12-22T23:59" />
+          </label>
+        </div>
+        <label class="f-item">
+          <span>领奖说明与开奖条件 *</span>
+          <textarea id="actRuleText" rows="3" required>满 100% 自动停止发号并锁定有效号码池，由授权人员按规则版本执行开奖并前台公示。</textarea>
+        </label>
+        <div class="modal-foot">
+          <button type="button" class="btn-secondary" data-close="activityModal">取消</button>
+          <button type="submit" class="btn-primary">校验并保存发布</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 弹窗：新增博主渠道 -->
+  <div class="modal-mask" id="kolModal" hidden>
+    <div class="modal-box modal-box--sm">
+      <div class="modal-head">
+        <h3>新增博主推广渠道</h3>
+        <button type="button" class="modal-close" data-close="kolModal">×</button>
+      </div>
+      <form id="kolForm" class="modal-form">
+        <label class="f-item">
+          <span>博主标识 (kol_id) *</span>
+          <input type="text" id="newKolId" required placeholder="例如：KOL_Speed88" />
+        </label>
+        <label class="f-item">
+          <span>博主名称 *</span>
+          <input type="text" id="newKolName" required placeholder="例如：巴西机车测评官" />
+        </label>
+        <div class="modal-foot">
+          <button type="button" class="btn-secondary" data-close="kolModal">取消</button>
+          <button type="submit" class="btn-primary">生成专属活动链接</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 弹窗：号码作废（需填原因） -->
+  <div class="modal-mask" id="voidModal" hidden>
+    <div class="modal-box modal-box--sm">
+      <div class="modal-head">
+        <h3>作废有效号码</h3>
+        <button type="button" class="modal-close" data-close="voidModal">×</button>
+      </div>
+      <form id="voidForm" class="modal-form">
+        <p class="modal-tip" id="voidTargetInfo">即将作废号码：--（作废后将从活动进度扣除并留痕）</p>
+        <label class="f-item">
+          <span>作废原因 *</span>
+          <input type="text" id="voidReasonInput" required placeholder="例如：风控识别为批量异常注册账号" />
+        </label>
+        <div class="modal-foot">
+          <button type="button" class="btn-secondary" data-close="voidModal">取消</button>
+          <button type="submit" class="btn-danger">确认作废并扣减进度</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 弹窗：财务调账 / 登记付款 -->
+  <div class="modal-mask" id="financeActionModal" hidden>
+    <div class="modal-box modal-box--sm">
+      <div class="modal-head">
+        <h3 id="finModalTitle">登记付款凭证</h3>
+        <button type="button" class="modal-close" data-close="financeActionModal">×</button>
+      </div>
+      <form id="financeActionForm" class="modal-form">
+        <div id="finModalFields"></div>
+        <div class="modal-foot">
+          <button type="button" class="btn-secondary" data-close="financeActionModal">取消</button>
+          <button type="submit" class="btn-primary">确认提交</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="admin-toast" id="adminToast" hidden></div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
