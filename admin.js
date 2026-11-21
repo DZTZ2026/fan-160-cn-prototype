@@ -1211,8 +1211,45 @@
     });
   }
 
-  document.getElementById("openSettlementFromModalBtn").addEventListener("click", openSettlementModal);
   document.getElementById("openSettlementFromStatsBtn").addEventListener("click", openSettlementModal);
+
+  // ===========================
+  // 5. 配置项问号 Hover 智能气泡提示（防裁切）
+  // ===========================
+  const hoverTipEl = document.createElement("div");
+  hoverTipEl.className = "erp-hover-tooltip";
+  hoverTipEl.hidden = true;
+  document.body.appendChild(hoverTipEl);
+
+  function showHelpTooltip(target) {
+    const text = target.getAttribute("data-tip-text");
+    if (!text) return;
+    hoverTipEl.textContent = text;
+    hoverTipEl.hidden = false;
+    const rect = target.getBoundingClientRect();
+    const tipRect = hoverTipEl.getBoundingClientRect();
+    let left = rect.left + rect.width / 2 - tipRect.width / 2;
+    left = Math.max(10, Math.min(window.innerWidth - tipRect.width - 10, left));
+    let top = rect.top - tipRect.height - 8;
+    if (top < 58) {
+      top = rect.bottom + 8;
+    }
+    hoverTipEl.style.left = `${left}px`;
+    hoverTipEl.style.top = `${top}px`;
+  }
+
+  function hideHelpTooltip() {
+    hoverTipEl.hidden = true;
+  }
+
+  document.querySelectorAll(".help-q[data-tip-text]").forEach((el) => {
+    el.addEventListener("mouseenter", () => showHelpTooltip(el));
+    el.addEventListener("mouseleave", hideHelpTooltip);
+    el.addEventListener("focus", () => showHelpTooltip(el));
+    el.addEventListener("blur", hideHelpTooltip);
+  });
+
+  document.getElementById("createActivityForm").addEventListener("scroll", hideHelpTooltip, { passive: true });
   document.getElementById("exportSettlementCsvBtn").addEventListener("click", () => {
     const header = ["结算单号", "博主标识", "博主名称", "周期", "点击量", "注册成功量", "费率版本", "币种", "单价", "有效注册", "排除异常", "调账金额", "调账原因", "应付总额", "状态", "付款时间", "付款凭证"];
     const rows = settlements.map((s) => [
