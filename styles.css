@@ -534,6 +534,33 @@ button {
   font-weight: 700;
 }
 
+.activity-time-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 12px 6px;
+  background: #e2e4e7;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  font-size: 11.5px;
+  color: #4b5563;
+  font-variant-numeric: tabular-nums;
+}
+
+.activity-time-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  color: #374151;
+  flex-shrink: 0;
+}
+
+.activity-time-value {
+  color: #1f2937;
+  font-weight: 600;
+}
+
 /* ===========================
    主内容区
    =========================== */
