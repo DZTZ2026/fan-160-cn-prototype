@@ -191,10 +191,11 @@
     }
   ];
 
-  // 结算单数据（补齐 PRD R06 点击/注册漏斗 + R07 调账原因与付款时间）
+  // 结算单数据（补齐期号 + PRD R06 漏斗 + R07 调账与付款时间）
   let settlements = [
     {
       id: "SET-202611-01",
+      round: "第 202601 期",
       kolCode: "B0001",
       kolName: "Tavares 44 官方主号",
       period: "2026-11-01 ~ 2026-11-30",
@@ -213,6 +214,7 @@
     },
     {
       id: "SET-202611-02",
+      round: "第 202601 期",
       kolCode: "B0002",
       kolName: "巴西机车测评社",
       period: "2026-11-01 ~ 2026-11-30",
@@ -231,6 +233,7 @@
     },
     {
       id: "SET-202610-09",
+      round: "第 202510 期",
       kolCode: "B0001",
       kolName: "Tavares 44 官方主号",
       period: "2026-10-01 ~ 2026-10-31",
@@ -249,12 +252,42 @@
     }
   ];
 
+  // 抽奖结果公示样本（与 H5 端已开出中奖号码保持一致）
+  let drawResults = [
+    {
+      round: "第 202601 期",
+      prize: "幸运即开奖 ¥500",
+      drawnAt: "2026-11-20 19:25:00",
+      winNumber: "668427",
+      winnerAccount: "13900012233",
+      winnerId: "UID_774512"
+    },
+    {
+      round: "第 202601 期",
+      prize: "幸运即开奖 ¥500",
+      drawnAt: "2026-11-20 21:14:32",
+      winNumber: "205875",
+      winnerAccount: "13866778899",
+      winnerId: "UID_759201"
+    },
+    {
+      round: "第 202510 期",
+      prize: "一等奖 本田 Fan 160",
+      drawnAt: "2026-10-31 20:00:00",
+      winNumber: "088219",
+      winnerAccount: "13755661122",
+      winnerId: "UID_620418"
+    }
+  ];
+
   const SEED_TICKETS = [
     {
       recordId: "REC-20261121-001",
+      round: "第 202601 期",
       accountId: "UID_880123",
       phone: "13800138000",
       nickname: "李明宇",
+      registeredAt: "2026-11-21 13:40:05",
       number: "052818",
       mode: "手动选择号码",
       status: "有效",
@@ -265,22 +298,41 @@
     },
     {
       recordId: "REC-20261120-019",
+      round: "第 202601 期",
       accountId: "UID_774512",
       phone: "13900012233",
       nickname: "陈杰森",
+      registeredAt: "2026-11-20 19:18:42",
       number: "668427",
       mode: "系统随机分配",
       status: "有效",
-      drawStatus: "待开奖",
+      drawStatus: "已中奖",
       kolId: "KOL_Tavares44",
       voidReason: "",
       createdAt: "2026-11-20 19:22:08"
     },
     {
+      recordId: "REC-20261120-015",
+      round: "第 202601 期",
+      accountId: "UID_759201",
+      phone: "13866778899",
+      nickname: "林凯峰",
+      registeredAt: "2026-11-20 21:10:15",
+      number: "205875",
+      mode: "手动选择号码",
+      status: "有效",
+      drawStatus: "已中奖",
+      kolId: "B0001",
+      voidReason: "",
+      createdAt: "2026-11-20 21:12:40"
+    },
+    {
       recordId: "REC-20261120-012",
+      round: "第 202601 期",
       accountId: "UID_771004",
       phone: "13699887766",
       nickname: "待核验用户",
+      registeredAt: "2026-11-20 14:15:30",
       number: "052831",
       mode: "手动选择号码",
       status: "待确认",
@@ -288,6 +340,21 @@
       kolId: "B0002",
       voidReason: "",
       createdAt: "2026-11-20 14:18:05"
+    },
+    {
+      recordId: "REC-20261031-088",
+      round: "第 202510 期",
+      accountId: "UID_620418",
+      phone: "13755661122",
+      nickname: "往期幸运用户",
+      registeredAt: "2026-10-28 16:04:11",
+      number: "088219",
+      mode: "系统随机分配",
+      status: "有效",
+      drawStatus: "已中奖",
+      kolId: "B0001",
+      voidReason: "",
+      createdAt: "2026-10-28 16:06:20"
     }
   ];
 
@@ -468,7 +535,7 @@
               <div class="ops-cell">
                 <button type="button" class="link-blue" data-edit="${a.id}">修改</button>
                 <button type="button" class="link-blue" data-detail="${a.id}">详情</button>
-                ${a.type === "抽奖" ? `<button type="button" class="link-blue" data-settle="${a.id}">结算明细</button>` : ""}
+                ${a.type === "抽奖" ? `<button type="button" class="link-blue" data-settle="${a.id}">活动明细</button>` : ""}
                 <button type="button" class="link-blue" data-toggle-close="${a.id}">${a.status === "已关闭" ? "重新开启" : "关闭活动"}</button>
                 <button type="button" class="link-blue" data-copy="${a.id}">复制</button>
               </div>
@@ -487,7 +554,7 @@
       btn.addEventListener("click", () => openLotteryDetail(Number(btn.dataset.detail)));
     });
     activityTableBody.querySelectorAll("[data-settle]").forEach((btn) => {
-      btn.addEventListener("click", () => openSettlementModal());
+      btn.addEventListener("click", () => openActivityDetailsModal("participation", Number(btn.dataset.settle)));
     });
     activityTableBody.querySelectorAll("[data-toggle-close]").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -1094,9 +1161,19 @@
     }
     const list = loadMergedTickets();
     const valid = list.filter((r) => r.status === "有效");
-    const winNum = valid[0] ? valid[0].number : "052818";
+    const winTicket = valid[0] || { number: "052818", phone: "13800138000", accountId: "UID_880123" };
+    const winNum = winTicket.number;
+    const drawTime = nowStr();
     main.status = "已开奖";
     main.winningNumber = winNum;
+    drawResults.unshift({
+      round: "第 202601 期",
+      prize: "一等奖 本田 Fan 160 2025",
+      drawnAt: drawTime,
+      winNumber: winNum,
+      winnerAccount: winTicket.phone,
+      winnerId: winTicket.accountId
+    });
     saveMergedTickets(list.map((r) => (r.status === "有效" ? { ...r, drawStatus: r.number === winNum ? "已中奖" : "未中奖" } : r)));
     addAuditLog("号码与开奖", "执行开奖并公示", `按规则版本 ${main.ruleVersion || "v1.0"} 人工触发开奖，中奖号码 ${winNum} 已入库并公示。`);
     renderActivityTable();
@@ -1105,20 +1182,179 @@
   });
 
   // ===========================
-  // 4. 博主推广结算明细弹窗（PRD R06 漏斗 + R07 财务确认/调账/付款）
+  // 4. 活动明细 3 页签弹窗（参与详情 / 抽奖结果 / 结算明细）
   // ===========================
-  function openSettlementModal() {
-    renderSettlementRows();
+  function switchActivityDetailTab(tabName) {
+    document.querySelectorAll("[data-detail-tab]").forEach((btn) => {
+      const active = btn.dataset.detailTab === tabName;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-selected", String(active));
+    });
+    ["participation", "results", "settlement"].forEach((key) => {
+      const pane = document.getElementById(`pane-${key}`);
+      if (pane) pane.hidden = key !== tabName;
+    });
+    if (tabName === "participation") renderParticipationRows();
+    else if (tabName === "results") renderDrawResultsRows();
+    else if (tabName === "settlement") renderSettlementRows();
+  }
+
+  document.querySelectorAll("[data-detail-tab]").forEach((btn) => {
+    btn.addEventListener("click", () => switchActivityDetailTab(btn.dataset.detailTab));
+  });
+
+  function openActivityDetailsModal(initialTab = "participation", actId = activities[0].id) {
+    const act = activities.find((a) => a.id === actId) || activities[0];
+    document.getElementById("actDetailsModalTitle").textContent = `活动明细 · ${act.name}（ID: ${act.id}）`;
+    switchActivityDetailTab(initialTab);
     openModal("settlementModal");
   }
 
+  // 页签 1：参与详情（注册时间、账号、ID、领取时间、期号、抽奖号码；支持搜索查询）
+  function renderParticipationRows() {
+    const roundVal = document.getElementById("partRoundFilter").value;
+    const kw = (document.getElementById("partSearchInput").value || "").trim().toLowerCase();
+
+    const rows = loadMergedTickets().map((r) => ({
+      round: r.round || "第 202601 期",
+      account: r.phone || "--",
+      accountId: r.accountId || "--",
+      registeredAt: r.registeredAt || r.createdAt || "--",
+      claimedAt: r.createdAt || "--",
+      number: r.number || "--",
+      mode: r.mode || "手动选择号码",
+      kolId: r.kolId || "B0001"
+    }));
+
+    const filtered = rows.filter((r) => {
+      if (roundVal !== "all" && r.round !== roundVal) return false;
+      if (kw && !`${r.round} ${r.account} ${r.accountId} ${r.number}`.toLowerCase().includes(kw)) return false;
+      return true;
+    });
+
+    document.getElementById("partCountTip").textContent = `共 ${filtered.length} 条参与记录`;
+
+    if (filtered.length === 0) {
+      document.getElementById("participationTableBody").innerHTML = `<tr><td colspan="8" style="padding:28px;color:#999;">暂无匹配的参与详情记录</td></tr>`;
+      return;
+    }
+
+    document.getElementById("participationTableBody").innerHTML = filtered
+      .map(
+        (r) => `
+          <tr>
+            <td>${r.round}</td>
+            <td><strong>${r.account}</strong></td>
+            <td>${r.accountId}</td>
+            <td style="white-space:nowrap;">${r.registeredAt}</td>
+            <td style="white-space:nowrap;">${r.claimedAt}</td>
+            <td><span class="win-num-pill">${r.number}</span></td>
+            <td>${r.mode}</td>
+            <td>${r.kolId}</td>
+          </tr>
+        `
+      )
+      .join("");
+  }
+
+  document.getElementById("partSearchBtn").addEventListener("click", renderParticipationRows);
+  document.getElementById("partRoundFilter").addEventListener("change", renderParticipationRows);
+  document.getElementById("partSearchInput").addEventListener("input", renderParticipationRows);
+  document.getElementById("partResetBtn").addEventListener("click", () => {
+    document.getElementById("partRoundFilter").value = "all";
+    document.getElementById("partSearchInput").value = "";
+    renderParticipationRows();
+  });
+
+  // 页签 2：抽奖结果（期号、开奖时间、中奖号码、中奖者账号、中奖者ID；支持搜索查询）
+  function renderDrawResultsRows() {
+    const roundVal = document.getElementById("resRoundFilter").value;
+    const kw = (document.getElementById("resSearchInput").value || "").trim().toLowerCase();
+
+    const filtered = drawResults.filter((r) => {
+      if (roundVal !== "all" && r.round !== roundVal) return false;
+      if (kw && !`${r.round} ${r.winNumber} ${r.winnerAccount} ${r.winnerId} ${r.prize}`.toLowerCase().includes(kw)) {
+        return false;
+      }
+      return true;
+    });
+
+    document.getElementById("resCountTip").textContent = `共 ${filtered.length} 条中奖记录`;
+
+    if (filtered.length === 0) {
+      document.getElementById("drawResultsTableBody").innerHTML = `<tr><td colspan="6" style="padding:28px;color:#999;">暂无匹配的抽奖结果记录</td></tr>`;
+      return;
+    }
+
+    document.getElementById("drawResultsTableBody").innerHTML = filtered
+      .map(
+        (r) => `
+          <tr>
+            <td>${r.round}</td>
+            <td>${r.prize}</td>
+            <td style="white-space:nowrap;">${r.drawnAt}</td>
+            <td><span class="win-num-pill">${r.winNumber}</span></td>
+            <td><strong>${r.winnerAccount}</strong></td>
+            <td>${r.winnerId}</td>
+          </tr>
+        `
+      )
+      .join("");
+  }
+
+  document.getElementById("resSearchBtn").addEventListener("click", renderDrawResultsRows);
+  document.getElementById("resRoundFilter").addEventListener("change", renderDrawResultsRows);
+  document.getElementById("resSearchInput").addEventListener("input", renderDrawResultsRows);
+  document.getElementById("resResetBtn").addEventListener("click", () => {
+    document.getElementById("resRoundFilter").value = "all";
+    document.getElementById("resSearchInput").value = "";
+    renderDrawResultsRows();
+  });
+
+  // 页签 3：结算明细（支持根据期号统计与查询）
+  function getFilteredSettlements() {
+    const roundVal = document.getElementById("settleRoundFilter").value;
+    const statusVal = document.getElementById("settleStatusFilter").value;
+    const kw = (document.getElementById("settleSearchInput").value || "").trim().toLowerCase();
+
+    return settlements.filter((s) => {
+      if (roundVal !== "all" && s.round !== roundVal) return false;
+      if (statusVal !== "all" && s.status !== statusVal) return false;
+      if (kw && !`${s.id} ${s.round} ${s.kolCode} ${s.kolName}`.toLowerCase().includes(kw)) return false;
+      return true;
+    });
+  }
+
   function renderSettlementRows() {
-    document.getElementById("settlementModalBody").innerHTML = settlements
+    const roundVal = document.getElementById("settleRoundFilter").value;
+    const list = getFilteredSettlements();
+
+    // 按当前筛选期号动态统计汇总
+    const sumClicks = list.reduce((acc, s) => acc + s.clicks, 0);
+    const sumReg = list.reduce((acc, s) => acc + s.registered, 0);
+    const sumValid = list.reduce((acc, s) => acc + s.validReg, 0);
+    const sumExcluded = list.reduce((acc, s) => acc + s.excluded, 0);
+    const sumPayable = list.reduce((acc, s) => acc + s.validReg * s.unitRate + s.adjust, 0);
+
+    document.getElementById("settleSummaryBar").innerHTML = `
+      <div class="detail-sum-box"><span>统计期号</span><strong>${roundVal === "all" ? "全部期号" : roundVal}（${list.length} 单）</strong></div>
+      <div class="detail-sum-box"><span>汇总点击 / 注册量</span><strong>${sumClicks.toLocaleString()} / ${sumReg.toLocaleString()}</strong></div>
+      <div class="detail-sum-box"><span>汇总有效注册（排除异常）</span><strong>${sumValid.toLocaleString()}（排除 ${sumExcluded}）</strong></div>
+      <div class="detail-sum-box"><span>汇总应付总额</span><strong style="color:#1890ff;">BRL ${sumPayable.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong></div>
+    `;
+
+    if (list.length === 0) {
+      document.getElementById("settlementModalBody").innerHTML = `<tr><td colspan="11" style="padding:28px;color:#999;">当前期号下暂无匹配的结算单</td></tr>`;
+      return;
+    }
+
+    document.getElementById("settlementModalBody").innerHTML = list
       .map((s) => {
         const total = s.validReg * s.unitRate + s.adjust;
         const cls = s.status === "已付款" ? "status-txt--running" : s.status === "已确认" ? "status-txt--drawn" : "status-txt--pending";
         return `
           <tr>
+            <td>${s.round}</td>
             <td>${s.id}</td>
             <td><strong>${s.kolCode}</strong><br/><span style="color:#888;">${s.kolName}</span></td>
             <td>${s.period}</td>
@@ -1157,7 +1393,7 @@
         const s = settlements.find((x) => x.id === btn.dataset.setConfirm);
         if (!s) return;
         s.status = "已确认";
-        addAuditLog("推广结算", "财务确认结算单", `结算单 ${s.id} 已确认锁定（有效注册 ${s.validReg}，费率版本 ${s.rateVer}）。`);
+        addAuditLog("推广结算", "财务确认结算单", `结算单 ${s.id}（${s.round}）已确认锁定（有效注册 ${s.validReg}，费率版本 ${s.rateVer}）。`);
         renderSettlementRows();
         showToast(`结算单 ${s.id} 已确认锁定明细与费率版本`);
       });
@@ -1187,7 +1423,7 @@
         s.adjustReason = s.adjustReason ? `${s.adjustReason}；${reason.trim()}` : reason.trim();
         addAuditLog("推广结算", "登记调账记录", `结算单 ${s.id} 调账 ${amt >= 0 ? "+" : ""}${amt.toFixed(2)} ${s.currency}，原因：${reason.trim()}`);
         renderSettlementRows();
-        showToast(`已完成调账并留痕记录`);
+        showToast("已完成调账并留痕记录");
       });
     });
 
@@ -1211,7 +1447,18 @@
     });
   }
 
-  document.getElementById("openSettlementFromStatsBtn").addEventListener("click", openSettlementModal);
+  document.getElementById("settleSearchBtn").addEventListener("click", renderSettlementRows);
+  document.getElementById("settleRoundFilter").addEventListener("change", renderSettlementRows);
+  document.getElementById("settleStatusFilter").addEventListener("change", renderSettlementRows);
+  document.getElementById("settleSearchInput").addEventListener("input", renderSettlementRows);
+  document.getElementById("settleResetBtn").addEventListener("click", () => {
+    document.getElementById("settleRoundFilter").value = "all";
+    document.getElementById("settleStatusFilter").value = "all";
+    document.getElementById("settleSearchInput").value = "";
+    renderSettlementRows();
+  });
+
+  document.getElementById("openSettlementFromStatsBtn").addEventListener("click", () => openActivityDetailsModal("settlement"));
 
   // ===========================
   // 5. 配置项问号 Hover 智能气泡提示（防裁切）
@@ -1251,8 +1498,9 @@
 
   document.getElementById("createActivityForm").addEventListener("scroll", hideHelpTooltip, { passive: true });
   document.getElementById("exportSettlementCsvBtn").addEventListener("click", () => {
-    const header = ["结算单号", "博主标识", "博主名称", "周期", "点击量", "注册成功量", "费率版本", "币种", "单价", "有效注册", "排除异常", "调账金额", "调账原因", "应付总额", "状态", "付款时间", "付款凭证"];
-    const rows = settlements.map((s) => [
+    const header = ["期号", "结算单号", "博主标识", "博主名称", "周期", "点击量", "注册成功量", "费率版本", "币种", "单价", "有效注册", "排除异常", "调账金额", "调账原因", "应付总额", "状态", "付款时间", "付款凭证"];
+    const rows = getFilteredSettlements().map((s) => [
+      s.round,
       s.id,
       s.kolCode,
       s.kolName,

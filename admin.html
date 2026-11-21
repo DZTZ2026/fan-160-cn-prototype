@@ -790,40 +790,135 @@
   </div>
 
   <!-- =========================================================
-       弹窗 3：博主推广结算明细与财务核对（对应图 4「查看结算明细」& PRD R07）
+       弹窗 3：活动明细（3页签：参与详情 / 抽奖结果 / 结算明细）
        ========================================================= -->
-  <div class="erp-modal-mask" id="settlementModal" hidden role="dialog" aria-modal="true">
-    <div class="erp-modal erp-modal--lg">
+  <div class="erp-modal-mask" id="settlementModal" hidden role="dialog" aria-modal="true" aria-labelledby="actDetailsModalTitle">
+    <div class="erp-modal erp-modal--lg" style="max-width:1280px;">
       <div class="erp-modal-header">
-        <h3>博主推广结算明细与对账（BRL / 有效注册付费）</h3>
-        <button type="button" class="erp-modal-close" data-close-modal="settlementModal">×</button>
+        <h3 id="actDetailsModalTitle">活动明细 · 本田 Fan 160 2025</h3>
+        <button type="button" class="erp-modal-close" data-close-modal="settlementModal" aria-label="关闭">×</button>
       </div>
       <div class="erp-modal-body">
-        <div class="detail-ops-bar">
-          <div style="font-size:12.5px;color:#64748b;">
-            归因口径：7天归因窗口内末次有效博主来源 · 同一账号仅计一次 · 确认后锁定费率与明细
-          </div>
-          <button type="button" class="btn-outline-blue" id="exportSettlementCsvBtn">导出对账单 CSV</button>
+        <!-- 3 页签切换 -->
+        <div class="modal-inner-tabs" role="tablist" aria-label="活动明细页签">
+          <button type="button" class="modal-tab-btn is-active" data-detail-tab="participation" role="tab" aria-selected="true">参与详情</button>
+          <button type="button" class="modal-tab-btn" data-detail-tab="results" role="tab" aria-selected="false">抽奖结果</button>
+          <button type="button" class="modal-tab-btn" data-detail-tab="settlement" role="tab" aria-selected="false">结算明细</button>
         </div>
 
-        <div class="erp-table-wrap">
-          <table class="erp-table erp-table--compact">
-            <thead>
-              <tr>
-                <th>结算单号</th>
-                <th>博主标识 / 名称</th>
-                <th>结算周期</th>
-                <th>点击量 / 注册量</th>
-                <th>费率版本 / 单价</th>
-                <th>有效注册 / 排除</th>
-                <th>调账金额与原因</th>
-                <th>应付总额</th>
-                <th>状态 / 付款凭证</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody id="settlementModalBody"></tbody>
-          </table>
+        <!-- 页签 1：参与详情 -->
+        <div class="modal-tab-pane" id="pane-participation" role="tabpanel">
+          <div class="detail-ops-bar">
+            <div class="detail-search-wrap">
+              <select id="partRoundFilter" class="erp-input" style="width:130px;">
+                <option value="all">全部期号</option>
+                <option value="第 202601 期">第 202601 期</option>
+                <option value="第 202510 期">第 202510 期</option>
+              </select>
+              <input type="text" id="partSearchInput" class="erp-input" placeholder="搜索账号 / ID / 抽奖号码" style="width:230px;" />
+              <button type="button" class="btn-blue" id="partSearchBtn">查询</button>
+              <button type="button" class="btn-default" id="partResetBtn">重置</button>
+            </div>
+            <span class="pane-count-tip" id="partCountTip">共 0 条参与记录</span>
+          </div>
+
+          <div class="erp-table-wrap" style="max-height:420px;">
+            <table class="erp-table erp-table--compact">
+              <thead>
+                <tr>
+                  <th>期号</th>
+                  <th>账号</th>
+                  <th>ID</th>
+                  <th>注册时间</th>
+                  <th>领取时间</th>
+                  <th>抽奖号码</th>
+                  <th>获取方式</th>
+                  <th>来源博主</th>
+                </tr>
+              </thead>
+              <tbody id="participationTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 页签 2：抽奖结果 -->
+        <div class="modal-tab-pane" id="pane-results" role="tabpanel" hidden>
+          <div class="detail-ops-bar">
+            <div class="detail-search-wrap">
+              <select id="resRoundFilter" class="erp-input" style="width:130px;">
+                <option value="all">全部期号</option>
+                <option value="第 202601 期">第 202601 期</option>
+                <option value="第 202510 期">第 202510 期</option>
+              </select>
+              <input type="text" id="resSearchInput" class="erp-input" placeholder="搜索中奖号码 / 中奖者账号 / 中奖者ID" style="width:260px;" />
+              <button type="button" class="btn-blue" id="resSearchBtn">查询</button>
+              <button type="button" class="btn-default" id="resResetBtn">重置</button>
+            </div>
+            <span class="pane-count-tip" id="resCountTip">共 0 条中奖记录</span>
+          </div>
+
+          <div class="erp-table-wrap" style="max-height:420px;">
+            <table class="erp-table erp-table--compact">
+              <thead>
+                <tr>
+                  <th>期号</th>
+                  <th>奖项</th>
+                  <th>开奖时间</th>
+                  <th>中奖号码</th>
+                  <th>中奖者账号</th>
+                  <th>中奖者ID</th>
+                </tr>
+              </thead>
+              <tbody id="drawResultsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 页签 3：结算明细（支持按期号统计与查询） -->
+        <div class="modal-tab-pane" id="pane-settlement" role="tabpanel" hidden>
+          <div class="detail-ops-bar">
+            <div class="detail-search-wrap">
+              <select id="settleRoundFilter" class="erp-input" style="width:130px;">
+                <option value="all">全部期号</option>
+                <option value="第 202601 期">第 202601 期</option>
+                <option value="第 202510 期">第 202510 期</option>
+              </select>
+              <select id="settleStatusFilter" class="erp-input" style="width:110px;">
+                <option value="all">全部状态</option>
+                <option value="待核对">待核对</option>
+                <option value="已确认">已确认</option>
+                <option value="已付款">已付款</option>
+              </select>
+              <input type="text" id="settleSearchInput" class="erp-input" placeholder="搜索结算单号 / 博主标识 / 名称" style="width:220px;" />
+              <button type="button" class="btn-blue" id="settleSearchBtn">查询</button>
+              <button type="button" class="btn-default" id="settleResetBtn">重置</button>
+            </div>
+            <button type="button" class="btn-outline-blue" id="exportSettlementCsvBtn">导出对账单 CSV</button>
+          </div>
+
+          <!-- 按期号实时统计汇总条 -->
+          <div class="detail-summary-bar" id="settleSummaryBar"></div>
+
+          <div class="erp-table-wrap" style="max-height:360px;">
+            <table class="erp-table erp-table--compact">
+              <thead>
+                <tr>
+                  <th>期号</th>
+                  <th>结算单号</th>
+                  <th>博主标识 / 名称</th>
+                  <th>结算周期</th>
+                  <th>点击量 / 注册量</th>
+                  <th>费率版本 / 单价</th>
+                  <th>有效注册 / 排除</th>
+                  <th>调账金额与原因</th>
+                  <th>应付总额</th>
+                  <th>状态 / 付款凭证</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="settlementModalBody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
       <div class="erp-modal-footer">

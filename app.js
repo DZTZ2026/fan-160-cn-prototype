@@ -847,9 +847,11 @@
 
     const newRecord = {
       recordId: `REC-${Date.now()}`,
+      round: "第 202601 期",
       accountId: user.accountId,
       phone: user.phone,
       nickname: user.nickname,
+      registeredAt: user.registeredAt || formatTimestamp(),
       currency: user.currency || "USD(美元)",
       number: finalNumber,
       mode: modeLabel,
