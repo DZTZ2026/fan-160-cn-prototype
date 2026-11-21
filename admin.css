@@ -711,7 +711,7 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 14px;
+  padding: 10px;
 }
 
 .erp-modal-mask[hidden] {
@@ -720,7 +720,7 @@ textarea {
 
 .erp-modal {
   width: 100%;
-  max-height: calc(100vh - 78px);
+  max-height: calc(100vh - 70px);
   background: #ffffff;
   border-radius: 6px;
   display: flex;
@@ -730,8 +730,8 @@ textarea {
 }
 
 .erp-modal--xl {
-  width: 96vw;
-  max-width: 1460px;
+  width: 98vw;
+  max-width: 1680px;
 }
 
 .erp-modal--lg {
