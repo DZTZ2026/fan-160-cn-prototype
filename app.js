@@ -1169,7 +1169,9 @@
       currency: user.currency || "USD(美元)",
       number: num,
       mode: modeLabel,
-      payInfo: `付费购号 ${formatUsd(tier.price)} / ${tier.qty}个（${payChannel}）`,
+      payInfo: `付费购号 ${formatUsd(tier.price)} / ${tier.qty}个`,
+      payMethod: payChannel,
+      firstPrize: "2025款 本田 Fan 160 摩托车",
       status: "有效",
       drawStatus: "待开奖",
       kolId: CURRENT_KOL_ID,
@@ -1253,6 +1255,9 @@
       currency: user.currency || "USD(美元)",
       number: finalNumber,
       mode: modeLabel,
+      payInfo: "免费领号",
+      payMethod: "免费",
+      firstPrize: "2025款 本田 Fan 160 摩托车",
       status: "有效",
       drawStatus: "待开奖",
       kolId: CURRENT_KOL_ID,
@@ -1354,6 +1359,7 @@
         number: "668427",
         mode: "系统随机分配",
         payInfo: "免费领号",
+        payMethod: "免费",
         status: "有效",
         drawStatus: "中奖",
         winningNumber: "668427",
@@ -1369,6 +1375,7 @@
         number: "041826",
         mode: "手动选择号码",
         payInfo: "付费购号 $1 / 1个",
+        payMethod: "PIX 快捷支付",
         status: "有效",
         drawStatus: "未中奖",
         winningNumber: "088219",
@@ -1384,6 +1391,7 @@
         number: "039512",
         mode: "系统随机分配",
         payInfo: "免费领号",
+        payMethod: "免费",
         status: "有效",
         drawStatus: "未中奖",
         winningNumber: "074105",
@@ -1465,11 +1473,21 @@
       return;
     }
 
+    function resolvePayMethod(rec) {
+      if (rec.payMethod) return rec.payMethod;
+      const info = String(rec.payInfo || "");
+      if (info.includes("PIX")) return "PIX 快捷支付";
+      if (info.includes("平台余额") || info.includes("付费")) return "平台余额支付";
+      return "免费";
+    }
+
     lookupResultArea.innerHTML = matched
       .map((rec) => {
         const isWon = rec.drawStatus === "中奖" || rec.drawStatus === "已中奖";
         const isLost = rec.drawStatus === "未中奖";
         const drawNum = rec.winningNumber || "088219";
+        const cleanPayInfo = String(rec.payInfo || "免费领号").replace(/（[^）]*支付[^）]*）/g, "");
+        const payMethodText = resolvePayMethod(rec);
         return `
           <div class="order-record-card ${isWon ? "order-record-card--won" : ""}">
             <div class="order-record-head">
@@ -1498,7 +1516,10 @@
                   : ""
               }
               <div class="order-meta-line">
-                <span>获取方式：${rec.mode} · ${rec.payInfo || "免费领号"}</span>
+                <span>获取方式：${rec.mode} · ${cleanPayInfo}</span>
+              </div>
+              <div class="order-meta-line">
+                <span>支付方式：<span class="order-meta-value">${payMethodText}</span></span>
               </div>
               <div class="order-meta-line">
                 <span>获得时间：${rec.createdAt}</span>
