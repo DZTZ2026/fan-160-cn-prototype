@@ -362,9 +362,17 @@
   let currentSubtab = "active";
   let selectedTypeChip = "抽奖";
   let formPrizes = [];
+  let formPriceTiers = [];
   let formKols = [];
   let selectedBannerSrc = "assets/fan-160-hero.jpg";
   let toastTimer = null;
+
+  const DEFAULT_PRICE_TIERS = [
+    { qty: 1, price: 1, tag: "" },
+    { qty: 2, price: 2, tag: "热门" },
+    { qty: 5, price: 5, tag: "超值" },
+    { qty: 10, price: 10, tag: "" }
+  ];
 
   // DOM
   const erpRoleSelect = document.getElementById("erpRoleSelect");
@@ -386,6 +394,8 @@
 
   const freezeNoticeBar = document.getElementById("freezeNoticeBar");
   const prizeRowsContainer = document.getElementById("prizeRowsContainer");
+  const priceTierPanel = document.getElementById("priceTierPanel");
+  const priceTierRows = document.getElementById("priceTierRows");
   const kolChannelsFormList = document.getElementById("kolChannelsFormList");
   const cfgRuleTextarea = document.getElementById("cfgRuleTextarea");
   const ruleCharCounter = document.getElementById("ruleCharCounter");
@@ -734,6 +744,74 @@
     });
   }
 
+  // 号码价格（免费 / 付费 + 档位动态表）
+  function getSelectedPriceMode() {
+    const checked = document.querySelector('input[name="cfgPriceMode"]:checked');
+    return checked ? checked.value : "free";
+  }
+
+  function syncPriceModeUI(isFrozen = false) {
+    const isPaid = getSelectedPriceMode() === "paid";
+    priceTierPanel.hidden = !isPaid;
+    if (isPaid) {
+      renderPriceTierRows(isFrozen);
+    }
+  }
+
+  function renderPriceTierRows(isFrozen = false) {
+    priceTierRows.innerHTML = formPriceTiers
+      .map(
+        (t, idx) => `
+          <div class="price-tier-row">
+            <input type="number" class="erp-input" value="${t.qty}" min="1" data-tier-field="qty" data-idx="${idx}" ${isFrozen ? "disabled" : ""} placeholder="数量" />
+            <input type="number" class="erp-input" value="${t.price}" min="0.01" step="0.01" data-tier-field="price" data-idx="${idx}" ${isFrozen ? "disabled" : ""} placeholder="价格($)" />
+            <input type="text" class="erp-input" value="${t.tag || ""}" data-tier-field="tag" data-idx="${idx}" ${isFrozen ? "disabled" : ""} placeholder="如：热门 / 超值" />
+            <div class="prize-row-ops">
+              ${
+                idx === formPriceTiers.length - 1
+                  ? `<button type="button" class="btn-mini-sq btn-mini-sq--blue" id="addPriceTierBtn" title="添加价格档位" ${isFrozen ? "disabled" : ""}>+</button>`
+                  : ""
+              }
+              <button type="button" class="btn-mini-sq" data-del-tier="${idx}" title="删除档位" ${isFrozen ? "disabled" : ""}>×</button>
+            </div>
+          </div>
+        `
+      )
+      .join("");
+
+    priceTierRows.querySelectorAll("[data-tier-field]").forEach((inp) => {
+      inp.addEventListener("input", () => {
+        const i = Number(inp.dataset.idx);
+        const f = inp.dataset.tierField;
+        formPriceTiers[i][f] = f === "tag" ? inp.value : parseFloat(inp.value) || 0;
+      });
+    });
+
+    const addBtn = document.getElementById("addPriceTierBtn");
+    if (addBtn) {
+      addBtn.addEventListener("click", () => {
+        const last = formPriceTiers[formPriceTiers.length - 1] || { qty: 1, price: 1 };
+        formPriceTiers.push({ qty: Math.max(1, Math.round(last.qty * 2)), price: Number((last.price * 2).toFixed(2)), tag: "" });
+        renderPriceTierRows(false);
+      });
+    }
+
+    priceTierRows.querySelectorAll("[data-del-tier]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        if (formPriceTiers.length <= 1) {
+          showToast("付费模式下至少保留 1 个号码价格档位");
+          return;
+        }
+        formPriceTiers.splice(Number(btn.dataset.delTier), 1);
+        renderPriceTierRows(false);
+      });
+    });
+  }
+
+  document.querySelectorAll('input[name="cfgPriceMode"]').forEach((rad) => {
+    rad.addEventListener("change", () => syncPriceModeUI(false));
+  });
+
   function renderKolFormRows() {
     const actIdLabel = document.getElementById("editingActivityId").value || "{活动ID}";
     kolChannelsFormList.innerHTML = formKols
@@ -889,6 +967,9 @@
     cfgRateUnitLabel.textContent = "BRL / 有效注册";
     document.getElementById("cfgUnitRate").value = "12.50";
     setFrozenFieldsState(false);
+    document.querySelector('input[name="cfgPriceMode"][value="free"]').checked = true;
+    formPriceTiers = DEFAULT_PRICE_TIERS.map((t) => ({ ...t }));
+    syncPriceModeUI(false);
     formPrizes = [
       { name: "一等奖", content: "", qty: 1 },
       { name: "2等奖", content: "", qty: 1 },
@@ -915,7 +996,12 @@
 
     // PRD R05：已发布活动冻结关键规则字段
     const isPublished = ["进行中", "待开奖", "已开奖"].includes(act.status);
+    const modeVal = act.priceMode || "free";
+    const modeRadio = document.querySelector(`input[name="cfgPriceMode"][value="${modeVal}"]`);
+    if (modeRadio) modeRadio.checked = true;
+    formPriceTiers = act.priceTiers && act.priceTiers.length ? act.priceTiers.map((t) => ({ ...t })) : DEFAULT_PRICE_TIERS.map((t) => ({ ...t }));
     setFrozenFieldsState(isPublished);
+    syncPriceModeUI(isPublished);
 
     formPrizes = act.prizes
       ? act.prizes.map((p) => ({ ...p }))
@@ -968,7 +1054,22 @@
     const formType = (document.querySelector('input[name="actFormType"]:checked') || {}).value || "站外抽奖";
     const eligibility = (document.querySelector('input[name="cfgEligibility"]:checked') || {}).value || "需登录平台账号";
     const drawMode = (document.querySelector('input[name="cfgDrawMode"]:checked') || {}).value || "人工触发开奖";
+    const priceMode = getSelectedPriceMode();
+    if (priceMode === "paid") {
+      const invalidTier = formPriceTiers.some((t) => !t.qty || t.qty < 1 || !t.price || t.price <= 0);
+      if (formPriceTiers.length === 0 || invalidTier) {
+        showToast("校验失败：付费模式下请为每个档位填写大于 0 的号码数量与价格");
+        return;
+      }
+      try {
+        localStorage.setItem("fan160_paid_tiers_v1", JSON.stringify(formPriceTiers));
+      } catch {
+        // ignore
+      }
+    }
     const modeShort = issueModes.length === 2 ? "自选+随机" : issueModes[0];
+    const minTier = formPriceTiers[0] || { qty: 1, price: 1 };
+    const priceDesc = priceMode === "paid" ? `付费购号（$${minTier.price}/${minTier.qty}个起）` : `免费领号（${modeShort}）`;
     const editId = document.getElementById("editingActivityId").value;
 
     if (editId) {
@@ -980,7 +1081,9 @@
         target.type = selectedTypeChip;
         target.formType = formType;
         target.category = formType;
-        target.condition = `${eligibility} · 免费领号（${modeShort}）`;
+        target.condition = `${eligibility} · ${priceDesc}`;
+        target.priceMode = priceMode;
+        target.priceTiers = formPriceTiers.map((t) => ({ ...t }));
         target.dispatchMode = drawMode;
         target.startTime = isPerm ? "不限" : start;
         target.endTime = isPerm ? "" : end;
@@ -992,7 +1095,7 @@
         target.unitRate = parseFloat(document.getElementById("cfgUnitRate").value) || 0;
         target.operateTime = nowStr();
       }
-      addAuditLog("活动管理", "更新活动配置", `更新 ID:${editId}「${name}」（渠道数 ${formKols.length}，结算币种 ${cfgSettleCurrency.value}）。`);
+      addAuditLog("活动管理", "更新活动配置", `更新 ID:${editId}「${name}」（号码价格：${priceMode === "paid" ? "付费" : "免费"}，渠道数 ${formKols.length}）。`);
       showToast(`活动「${name}」配置已更新并记录审计日志`);
     } else {
       const newAct = {
@@ -1002,7 +1105,9 @@
         currency: cfgSettleCurrency.value,
         type: selectedTypeChip,
         formType,
-        condition: `${eligibility} · 免费领号（${modeShort}）`,
+        condition: `${eligibility} · ${priceDesc}`,
+        priceMode,
+        priceTiers: formPriceTiers.map((t) => ({ ...t })),
         level: "不限制",
         vip: "不限制",
         tag: "不限制",
@@ -1028,7 +1133,7 @@
         isCoreLottery: true
       };
       activities.unshift(newAct);
-      addAuditLog("活动管理", targetStatus === "进行中" ? "发布新活动" : "保存活动草稿", `创建 ID:${newAct.id}「${name}」（${round}），状态：${targetStatus}。`);
+      addAuditLog("活动管理", targetStatus === "进行中" ? "发布新活动" : "保存活动草稿", `创建 ID:${newAct.id}「${name}」（${round}，${priceMode === "paid" ? "付费购号" : "免费领号"}），状态：${targetStatus}。`);
       showToast(`已新增活动「${name}」（状态：${targetStatus}）`);
     }
 

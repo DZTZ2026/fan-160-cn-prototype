@@ -105,17 +105,53 @@
     ["081901", "081904", "081905", "081908", "081911", "081916", "081920", "081925", "081929"]
   ];
 
+  // 付费抽奖默认档位（若后台修改并保存了付费档位，将优先读取后台配置）
+  const DEFAULT_PAID_TIERS = [
+    { qty: 1, price: 1, tag: "" },
+    { qty: 2, price: 2, tag: "热门" },
+    { qty: 5, price: 5, tag: "超值" },
+    { qty: 10, price: 10, tag: "" }
+  ];
+
+  function loadPaidTiers() {
+    try {
+      const raw = localStorage.getItem("fan160_paid_tiers_v1");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      // ignore
+    }
+    return DEFAULT_PAID_TIERS.map((t) => ({ ...t }));
+  }
+
   // 状态
+  let lotteryMode = urlParams.get("mode") === "paid" ? "paid" : "free"; // "free" | "paid"
+  let paidTiers = loadPaidTiers();
+  let selectedTierIdx = paidTiers.length > 1 ? 1 : 0; // 付费模式默认选中第2档（$2 / 2个号码）
   let selectionMode = "manual"; // "manual" | "random"
   let currentBatchIdx = 0;
-  let selectedManualNumber = "052819";
+  let selectedManualNumbers = ["052819"];
   let randomPreviewNumber = null;
   let selectedCurrency = CURRENCIES[0]; // 默认 USD(美元)
   let pendingLockAfterAuth = false;
+  let pendingPayIsNewReg = false;
   let currentUser = loadCurrentUser();
   let toastTimer = null;
 
   // DOM 引用
+  const switchFreeModeBtn = document.getElementById("switchFreeModeBtn");
+  const switchPaidModeBtn = document.getElementById("switchPaidModeBtn");
+  const heroLiveBadge = document.getElementById("heroLiveBadge");
+  const participationPill = document.getElementById("participationPill");
+  const paidTiersArea = document.getElementById("paidTiersArea");
+  const paidTiersGrid = document.getElementById("paidTiersGrid");
+  const paidTierRuleTip = document.getElementById("paidTierRuleTip");
+  const ctaTitle = document.getElementById("ctaTitle");
+  const payConfirmSummary = document.getElementById("payConfirmSummary");
+  const confirmPaySubmitBtn = document.getElementById("confirmPaySubmitBtn");
+
   const siteHeader = document.getElementById("siteHeader");
   const headerAccountWrap = document.getElementById("headerAccountWrap");
   const headerAccountBtn = document.getElementById("headerAccountBtn");
@@ -348,6 +384,86 @@
     progressStageTag.textContent = issued >= TOTAL_POOL ? "已满额 · 待开奖" : "满 100% 进入待开奖";
   }
 
+  function getCurrentPaidTier() {
+    return paidTiers[selectedTierIdx] || paidTiers[0] || { qty: 1, price: 1, tag: "" };
+  }
+
+  function getMaxPickCount() {
+    return lotteryMode === "paid" ? Math.max(1, Number(getCurrentPaidTier().qty) || 1) : 1;
+  }
+
+  function formatUsd(price) {
+    const num = Number(price) || 0;
+    return Number.isInteger(num) ? `$${num}` : `$${num.toFixed(2)}`;
+  }
+
+  function renderPaidTiers() {
+    const tier = getCurrentPaidTier();
+    paidTierRuleTip.textContent = `支付 ${formatUsd(tier.price)} 可选择 ${tier.qty} 个号码`;
+
+    paidTiersGrid.innerHTML = paidTiers
+      .map((t, idx) => {
+        const active = idx === selectedTierIdx;
+        return `
+          <button type="button" class="paid-tier-card ${active ? "is-selected" : ""}" data-tier-idx="${idx}">
+            ${t.tag ? `<span class="paid-tier-badge">${t.tag}</span>` : ""}
+            <span class="paid-tier-price">${formatUsd(t.price)}</span>
+            <span class="paid-tier-qty">${t.qty} 个号码</span>
+          </button>
+        `;
+      })
+      .join("");
+
+    paidTiersGrid.querySelectorAll("[data-tier-idx]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        selectedTierIdx = Number(btn.dataset.tierIdx);
+        const maxCount = getMaxPickCount();
+        if (selectedManualNumbers.length > maxCount) {
+          selectedManualNumbers = selectedManualNumbers.slice(0, maxCount);
+        }
+        renderPaidTiers();
+        renderManualGrid();
+        renderAuthAndCtaState();
+      });
+    });
+  }
+
+  function setLotteryMode(nextMode) {
+    lotteryMode = nextMode === "paid" ? "paid" : "free";
+    paidTiers = loadPaidTiers();
+    if (selectedTierIdx >= paidTiers.length) selectedTierIdx = 0;
+
+    const isPaid = lotteryMode === "paid";
+    switchFreeModeBtn.classList.toggle("is-active", !isPaid);
+    switchPaidModeBtn.classList.toggle("is-active", isPaid);
+
+    heroLiveBadge.textContent = isPaid ? "付费购号 · 进行中" : "免费领号 · 进行中";
+    participationPill.textContent = isPaid ? "付费购号 · 选档支付" : "免费领号 · 无需购买";
+    paidTiersArea.hidden = !isPaid;
+
+    // 切换回免费模式时仅保留 1 个自选号码
+    const maxCount = getMaxPickCount();
+    if (selectedManualNumbers.length > maxCount) {
+      selectedManualNumbers = selectedManualNumbers.slice(0, maxCount);
+    }
+
+    if (isPaid) {
+      renderPaidTiers();
+    }
+    renderManualGrid();
+    renderAuthAndCtaState();
+  }
+
+  switchFreeModeBtn.addEventListener("click", () => {
+    setLotteryMode("free");
+    showToast("当前预览：免费抽奖样式");
+  });
+
+  switchPaidModeBtn.addEventListener("click", () => {
+    setLotteryMode("paid");
+    showToast("当前预览：付费抽奖样式");
+  });
+
   // ===========================
   // 登录状态与 CTA 同步
   // ===========================
@@ -355,50 +471,78 @@
     channelKolLabel.textContent = `博主 ${CURRENT_KOL_ID}`;
 
     const records = loadRecords();
-    const myRecord = currentUser
-      ? records.find((r) => r.accountId === currentUser.accountId || r.phone === currentUser.phone)
-      : null;
+    const myRecords = currentUser
+      ? records.filter((r) => r.accountId === currentUser.accountId || r.phone === currentUser.phone)
+      : [];
+    const isPaid = lotteryMode === "paid";
+    const tier = getCurrentPaidTier();
 
     if (currentUser) {
       headerAccountBtn.classList.add("is-logged-in");
       headerAccountBtn.setAttribute("aria-label", `已登录账号：${currentUser.nickname || currentUser.accountId}`);
       avatarPopoverName.textContent = `账号：${currentUser.phone || currentUser.nickname}`;
       avatarPopoverUid.textContent = `ID：${currentUser.accountId}`;
-      ctaSubtext.innerHTML = `
-        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
-          <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm-1.2 14.2L7 12.4l1.4-1.4 2.4 2.4 5-5L17.2 9.8Z" />
-        </svg>
-        <span>${myRecord ? "本期已锁定号码 · 点击查看" : "已登录平台账号 · 免费立即生效"}</span>
-      `;
     } else {
       headerAccountBtn.classList.remove("is-logged-in");
       headerAccountBtn.setAttribute("aria-label", "登录或注册");
       headerAccountText.textContent = "登录/注册";
       avatarPopover.hidden = true;
-      ctaSubtext.innerHTML = `
-        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
-          <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm-1.2 14.2L7 12.4l1.4-1.4 2.4 2.4 5-5L17.2 9.8Z" />
-        </svg>
-        <span>免费参与 · 注册/登录后生效</span>
-      `;
     }
 
-    if (myRecord) {
-      myTicketsBadge.textContent = "1";
+    if (myRecords.length > 0) {
+      myTicketsBadge.textContent = String(myRecords.length);
       myTicketsBadge.hidden = false;
     } else {
       myTicketsBadge.hidden = true;
     }
 
-    if (selectionMode === "manual") {
-      ctaRightLabel.textContent = "当前自选";
-      ctaRightValue.textContent = selectedManualNumber || "请选择";
-      manualSelectedHint.innerHTML = selectedManualNumber
-        ? `已选：<strong>${selectedManualNumber}</strong>`
-        : `请点选一个可选号码`;
+    if (isPaid) {
+      ctaTitle.textContent = `立即购买号码 (${formatUsd(tier.price)})`;
+      ctaSubtext.innerHTML = `
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
+          <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm-1.2 14.2L7 12.4l1.4-1.4 2.4 2.4 5-5L17.2 9.8Z" />
+        </svg>
+        <span>支付 ${formatUsd(tier.price)} 可选 ${tier.qty} 个号码${currentUser ? " · 立即支付锁定" : " · 登录/注册后支付"}</span>
+      `;
+      ctaRightLabel.textContent = `可选 ${tier.qty} 个号码`;
+      ctaRightValue.textContent = `$${Number(tier.price).toFixed(2)}`;
+      randomDesc.innerHTML = `支付 <strong>${formatUsd(tier.price)}</strong> 并完成后，系统将从当前剩余号池中为您自动分配 <strong>${tier.qty} 个唯一 6 位幸运号码</strong>，防重防并发冲突。`;
     } else {
-      ctaRightLabel.textContent = "发号方式";
-      ctaRightValue.textContent = randomPreviewNumber ? `随机 ${randomPreviewNumber}` : "系统随机";
+      ctaTitle.textContent = "立即锁定号码";
+      ctaSubtext.innerHTML = `
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
+          <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm-1.2 14.2L7 12.4l1.4-1.4 2.4 2.4 5-5L17.2 9.8Z" />
+        </svg>
+        <span>${
+          currentUser
+            ? myRecords.length > 0
+              ? "本期已锁定号码 · 点击查看"
+              : "已登录平台账号 · 免费立即生效"
+            : "免费参与 · 注册/登录后生效"
+        }</span>
+      `;
+      if (selectionMode === "manual") {
+        ctaRightLabel.textContent = "当前自选";
+        ctaRightValue.textContent = selectedManualNumbers[0] || "请选择";
+      } else {
+        ctaRightLabel.textContent = "发号方式";
+        ctaRightValue.textContent = randomPreviewNumber ? `随机 ${randomPreviewNumber}` : "系统随机";
+      }
+      randomDesc.innerHTML = `点击下方「立即锁定号码」并完成注册/登录后，系统将从当前剩余号池中为您自动分配 <strong>1 个唯一 6 位幸运号码</strong>，防重防并发冲突。`;
+    }
+
+    if (selectionMode === "manual") {
+      if (isPaid) {
+        const maxCount = getMaxPickCount();
+        const preview = selectedManualNumbers.slice(0, 2).join("、") + (selectedManualNumbers.length > 2 ? "…" : "");
+        manualSelectedHint.innerHTML = `已选 <strong>${selectedManualNumbers.length}/${maxCount}</strong>${
+          preview ? `（${preview}）` : ""
+        }`;
+      } else {
+        manualSelectedHint.innerHTML = selectedManualNumbers[0]
+          ? `已选：<strong>${selectedManualNumbers[0]}</strong>`
+          : `请点选一个可选号码`;
+      }
     }
   }
 
@@ -408,32 +552,37 @@
   function renderManualGrid() {
     const taken = getAllTakenNumbers();
     const batch = [...MANUAL_BATCHES[currentBatchIdx]];
+    const maxCount = getMaxPickCount();
 
-    if (selectedManualNumber && !batch.includes(selectedManualNumber) && !taken.has(selectedManualNumber)) {
-      batch[0] = selectedManualNumber;
+    // 剔除刚被占用的号码
+    selectedManualNumbers = selectedManualNumbers.filter((n) => !taken.has(n));
+
+    // 若用户自定义输入了不在当前批次的号码，插入到首格方便查看
+    if (selectedManualNumbers[0] && !batch.includes(selectedManualNumbers[0])) {
+      batch[0] = selectedManualNumbers[0];
     }
 
-    if (!selectedManualNumber || taken.has(selectedManualNumber)) {
+    if (selectedManualNumbers.length === 0) {
       const firstAvail = batch.find((num) => !taken.has(num));
-      selectedManualNumber = firstAvail || generateUniqueAvailableNumber();
+      selectedManualNumbers = [firstAvail || generateUniqueAvailableNumber()];
     }
 
     manualNumberGrid.innerHTML = batch
       .map((num) => {
         const isTaken = taken.has(num);
-        const isSelected = !isTaken && num === selectedManualNumber;
+        const isSelected = !isTaken && selectedManualNumbers.includes(num);
         return `
           <button
             type="button"
             class="num-card ${isSelected ? "is-selected" : ""}"
             data-num="${num}"
-            role="radio"
+            role="${maxCount > 1 ? "checkbox" : "radio"}"
             aria-checked="${isSelected ? "true" : "false"}"
             ${isTaken ? "disabled" : ""}
           >
             ${isSelected ? '<span class="num-selected-pill">已选</span>' : ""}
             <span class="num-card-code">${num}</span>
-            <span class="num-card-tag">${isTaken ? "已占用" : isSelected ? "待锁定" : "可选"}</span>
+            <span class="num-card-tag">${isTaken ? "已占用" : isSelected ? (lotteryMode === "paid" ? "待购买" : "待锁定") : "可选"}</span>
           </button>
         `;
       })
@@ -441,7 +590,21 @@
 
     manualNumberGrid.querySelectorAll(".num-card:not(:disabled)").forEach((btn) => {
       btn.addEventListener("click", () => {
-        selectedManualNumber = btn.dataset.num;
+        const num = btn.dataset.num;
+        if (maxCount === 1) {
+          selectedManualNumbers = [num];
+        } else {
+          if (selectedManualNumbers.includes(num)) {
+            if (selectedManualNumbers.length > 1) {
+              selectedManualNumbers = selectedManualNumbers.filter((x) => x !== num);
+            }
+          } else if (selectedManualNumbers.length < maxCount) {
+            selectedManualNumbers.push(num);
+          } else {
+            showToast(`当前档位最多可选择 ${maxCount} 个号码，可取消已选或切换更高档位`);
+            return;
+          }
+        }
         renderManualGrid();
         renderAuthAndCtaState();
       });
@@ -467,7 +630,9 @@
 
   refreshPoolBtn.addEventListener("click", () => {
     currentBatchIdx = (currentBatchIdx + 1) % MANUAL_BATCHES.length;
-    selectedManualNumber = "";
+    if (lotteryMode === "free") {
+      selectedManualNumbers = [];
+    }
     renderManualGrid();
     showToast("已切换一批剩余可选号码");
   });
@@ -488,7 +653,16 @@
       showToast(`号码 ${formatted} 已被占用，请更换其他号码`);
       return;
     }
-    selectedManualNumber = formatted;
+    const maxCount = getMaxPickCount();
+    if (maxCount === 1) {
+      selectedManualNumbers = [formatted];
+    } else if (!selectedManualNumbers.includes(formatted)) {
+      if (selectedManualNumbers.length < maxCount) {
+        selectedManualNumbers.push(formatted);
+      } else {
+        selectedManualNumbers[selectedManualNumbers.length - 1] = formatted;
+      }
+    }
     customNumberInput.value = formatted;
     renderManualGrid();
     showToast(`已选中自选号码 ${formatted}`);
@@ -814,9 +988,119 @@
   });
 
   // ===========================
-  // 号码锁定与结果展示（PRD R02 / R03 / R06）
+  // 号码锁定 / 付费购买与结果展示（PRD R02 / R03 / R06）
   // ===========================
+  function openPayConfirmModal(user, { isNewRegistration = false } = {}) {
+    pendingPayIsNewReg = isNewRegistration;
+    const tier = getCurrentPaidTier();
+    const picked = selectionMode === "manual" ? selectedManualNumbers.slice(0, tier.qty) : [];
+    const remainAuto = Math.max(0, tier.qty - picked.length);
+    const numDesc =
+      selectionMode === "manual"
+        ? remainAuto > 0
+          ? `${picked.join("、")}（另 ${remainAuto} 个由系统自动补齐）`
+          : picked.join("、")
+        : `系统随机分配 ${tier.qty} 个唯一号码`;
+
+    payConfirmSummary.innerHTML = `
+      <div class="pending-lock-row"><span>购买档位</span><strong>${tier.qty} 个抽奖号码</strong></div>
+      <div class="pending-lock-row"><span>选号方式</span><span>${selectionMode === "manual" ? "手动选择号码" : "系统随机分配"}</span></div>
+      <div class="pending-lock-row"><span>待锁定号码</span><strong>${numDesc}</strong></div>
+      <div class="pending-lock-row"><span>购买账号</span><span>${user.phone}（${user.accountId}）</span></div>
+      <div class="pending-lock-row"><span>应付金额</span><strong style="color:#15803d;font-size:16px;">$${Number(tier.price).toFixed(2)}</strong></div>
+    `;
+    confirmPaySubmitBtn.textContent = `确认支付 $${Number(tier.price).toFixed(2)}`;
+    openModal("payConfirmModal");
+  }
+
+  confirmPaySubmitBtn.addEventListener("click", () => {
+    if (!currentUser) return;
+    closeModal("payConfirmModal");
+    issuePaidTicketsForUser(currentUser, { isNewRegistration: pendingPayIsNewReg });
+  });
+
+  function issuePaidTicketsForUser(user, { isNewRegistration = false } = {}) {
+    const tier = getCurrentPaidTier();
+    const count = Math.max(1, Number(tier.qty) || 1);
+    const taken = getAllTakenNumbers();
+    const issuedNums = [];
+
+    if (selectionMode === "manual") {
+      selectedManualNumbers.forEach((n) => {
+        if (issuedNums.length < count && !taken.has(n) && !issuedNums.includes(n)) {
+          issuedNums.push(n);
+          taken.add(n);
+        }
+      });
+    }
+
+    while (issuedNums.length < count) {
+      let candidate = formatNumber6(Math.floor(1 + Math.random() * TOTAL_POOL));
+      if (!taken.has(candidate) && !issuedNums.includes(candidate)) {
+        issuedNums.push(candidate);
+        taken.add(candidate);
+      }
+    }
+
+    const records = loadRecords();
+    const nowTime = formatTimestamp();
+    const payChannel = (document.querySelector('input[name="h5PayChannel"]:checked') || {}).value || "平台余额支付";
+    const modeLabel = selectionMode === "manual" ? "手动选择号码" : "系统随机分配";
+
+    const createdList = issuedNums.map((num, idx) => ({
+      recordId: `REC-${Date.now()}-${idx + 1}`,
+      round: "第 202601 期",
+      accountId: user.accountId,
+      phone: user.phone,
+      nickname: user.nickname,
+      registeredAt: user.registeredAt || nowTime,
+      currency: user.currency || "USD(美元)",
+      number: num,
+      mode: modeLabel,
+      payInfo: `付费购号 ${formatUsd(tier.price)} / ${tier.qty}个（${payChannel}）`,
+      status: "有效",
+      drawStatus: "待开奖",
+      kolId: CURRENT_KOL_ID,
+      isNewRegistration: isNewRegistration && idx === 0,
+      createdAt: nowTime
+    }));
+
+    records.unshift(...createdList);
+    saveRecords(records);
+
+    selectedManualNumbers = [];
+    renderProgress();
+    renderManualGrid();
+    renderAuthAndCtaState();
+    showLockSuccessMulti(createdList, tier);
+  }
+
+  function showLockSuccessMulti(recordsList, tier) {
+    const first = recordsList[0];
+    if (recordsList.length === 1) {
+      lockedTicketNumber.innerHTML = first.number;
+    } else {
+      lockedTicketNumber.innerHTML = `<div class="locked-multi-chips">${recordsList
+        .map((r) => `<span class="locked-multi-chip">${r.number}</span>`)
+        .join("")}</div>`;
+    }
+    lockedTicketMeta.textContent = `支付 ${formatUsd(tier.price)} 已锁定 ${recordsList.length} 个有效号码 · 账号：${first.accountId}`;
+
+    lockAttributionSummary.innerHTML = `
+      <div class="pending-lock-row"><span>真实姓名 / 账号</span><strong>${first.nickname} (${first.phone})</strong></div>
+      <div class="pending-lock-row"><span>平台账号 ID</span><code>${first.accountId}</code></div>
+      <div class="pending-lock-row"><span>支付金额</span><strong style="color:#15803d;">$${Number(tier.price).toFixed(2)}（${recordsList.length} 个号码）</strong></div>
+      <div class="pending-lock-row"><span>获取时间</span><span>${first.createdAt}</span></div>
+    `;
+    openModal("lockSuccessModal");
+  }
+
   function executeLockTicketForUser(user, { isNewRegistration = false } = {}) {
+    if (lotteryMode === "paid") {
+      openPayConfirmModal(user, { isNewRegistration });
+      return;
+    }
+
     const records = loadRecords();
     const existing = records.find(
       (r) => (r.accountId === user.accountId || r.phone === user.phone) && r.status === "有效"
@@ -832,8 +1116,9 @@
     const modeLabel = selectionMode === "manual" ? "手动选择号码" : "系统随机分配";
 
     if (selectionMode === "manual") {
-      if (selectedManualNumber && !taken.has(selectedManualNumber)) {
-        finalNumber = selectedManualNumber;
+      const picked = selectedManualNumbers[0];
+      if (picked && !taken.has(picked)) {
+        finalNumber = picked;
       } else {
         finalNumber = generateUniqueAvailableNumber();
         showToast("原自选号刚被他人抢先锁定，系统已为您自动补发可用号码");
@@ -865,6 +1150,7 @@
     records.unshift(newRecord);
     saveRecords(records);
 
+    selectedManualNumbers = [];
     renderProgress();
     renderManualGrid();
     renderAuthAndCtaState();
@@ -885,12 +1171,11 @@
   }
 
   lockNumberBtn.addEventListener("click", () => {
-    if (selectionMode === "manual" && !selectedManualNumber) {
+    if (selectionMode === "manual" && selectedManualNumbers.length === 0) {
       showToast("请先选择一个可用的 6 位号码");
       return;
     }
     if (!currentUser) {
-      // 未登录时直接跳转平台前台注册/登录页（默认打开注册页，可一键切换登录页）
       openAuthPage("register", { lockAfter: true });
     } else {
       executeLockTicketForUser(currentUser, { isNewRegistration: false });
@@ -1025,7 +1310,7 @@
                 </button>
               </div>
               <div class="order-meta-line">
-                <span>获取方式：${rec.mode} · 免费领号</span>
+                <span>获取方式：${rec.mode} · ${rec.payInfo || "免费领号"}</span>
               </div>
               <div class="order-meta-line">
                 <span>获得时间：${rec.createdAt}</span>
@@ -1140,7 +1425,7 @@
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
       // 优先关闭上层小弹窗，再关闭全屏登录注册页
-      const topIds = ["infoModal", "supportModal", "rulesModal", "ticketsModal", "lockSuccessModal", "authPageModal"];
+      const topIds = ["infoModal", "supportModal", "rulesModal", "ticketsModal", "lockSuccessModal", "payConfirmModal", "authPageModal"];
       for (const id of topIds) {
         const el = document.getElementById(id);
         if (el && !el.hidden) {
@@ -1213,8 +1498,7 @@
   // 初始化渲染
   renderCurrencyDropdown();
   renderProgress();
-  renderManualGrid();
   renderPrizeList();
-  renderAuthAndCtaState();
+  setLotteryMode(lotteryMode);
   handleScroll();
 })();

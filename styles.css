@@ -83,6 +83,237 @@ button {
   }
 }
 
+/* H5 原型旁边的「查看免费抽奖 / 查看付费抽奖」切换浮条 */
+.h5-mode-switcher {
+  position: fixed;
+  top: 74px;
+  left: calc(50% + 232px);
+  z-index: 60;
+  width: 158px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mode-switcher-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.4px;
+  padding: 0 2px;
+}
+
+.mode-switch-btn {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 9px 10px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  text-align: left;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.mode-switch-btn:hover {
+  border-color: #1d8a4e;
+  color: #111827;
+}
+
+.mode-switch-btn .ms-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  flex-shrink: 0;
+}
+
+.mode-switch-btn.is-active {
+  background: #111827;
+  border-color: #111827;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(17, 24, 39, 0.2);
+}
+
+.mode-switch-btn.is-active .ms-dot {
+  background: #4ade80;
+}
+
+@media (max-width: 790px) {
+  .h5-mode-switcher {
+    position: sticky;
+    top: var(--proto-bar-h, 50px);
+    left: auto;
+    width: 100%;
+    max-width: 430px;
+    margin: 0 auto;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    flex-direction: row;
+    align-items: center;
+    padding: 8px 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+  .mode-switcher-title {
+    display: none;
+  }
+  .mode-switch-btn {
+    justify-content: center;
+    padding: 7px 8px;
+  }
+}
+
+/* 付费抽奖档位选择区 */
+.paid-tiers-area {
+  margin-bottom: 12px;
+}
+
+.paid-tiers-area[hidden] {
+  display: none;
+}
+
+.paid-tiers-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  padding: 0 2px;
+}
+
+.paid-tiers-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #1f2328;
+}
+
+.paid-tiers-sub {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--green-dark);
+}
+
+.paid-tiers-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+}
+
+.paid-tier-card {
+  position: relative;
+  border: 1.5px solid #d1d5db;
+  background: #ffffff;
+  color: #1f2328;
+  border-radius: 9px;
+  padding: 10px 4px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: transform 0.12s ease, border-color 0.14s ease, background-color 0.14s ease;
+}
+
+.paid-tier-card:hover {
+  border-color: #111827;
+}
+
+.paid-tier-card:active {
+  transform: scale(0.96);
+}
+
+.paid-tier-card.is-selected {
+  background: var(--black);
+  border-color: var(--black);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
+}
+
+.paid-tier-price {
+  font-size: 17px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+
+.paid-tier-qty {
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.paid-tier-card.is-selected .paid-tier-qty {
+  color: #d1d5db;
+}
+
+.paid-tier-badge {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--green);
+  color: #ffffff;
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.pay-wallet-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.pay-wallet-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 9px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pay-wallet-opt:has(input:checked) {
+  border-color: var(--green);
+  background: #f0fdf4;
+  color: var(--green-dark);
+}
+
+.locked-multi-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.locked-multi-chip {
+  background: #14532d;
+  color: #4ade80;
+  font-size: 15px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 7px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+}
+
 /* 移动端优先画布：桌面端居中 430px，移动端全宽 */
 .app-shell {
   width: 100%;
@@ -1474,6 +1705,7 @@ button {
 #infoModal,
 #rulesModal,
 #lockSuccessModal,
+#payConfirmModal,
 #ticketsModal {
   z-index: 120;
 }

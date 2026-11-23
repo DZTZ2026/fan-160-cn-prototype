@@ -1063,6 +1063,46 @@ input[disabled] {
   gap: 6px;
 }
 
+/* 号码价格付费档位配置 */
+.price-tier-panel {
+  margin-top: 9px;
+  padding: 10px 11px;
+  border: 1px solid #d9e8ff;
+  background: #f7faff;
+  border-radius: 6px;
+}
+
+.price-tier-panel[hidden] {
+  display: none;
+}
+
+.price-tier-head,
+.price-tier-row {
+  display: grid;
+  grid-template-columns: 112px 112px 1fr 56px;
+  gap: 6px;
+  align-items: center;
+}
+
+.price-tier-head {
+  font-size: 11.5px;
+  color: #64748b;
+  margin-bottom: 6px;
+}
+
+.price-tier-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.price-tier-tip {
+  margin-top: 7px;
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
 .prize-row-ops {
   display: flex;
   align-items: center;

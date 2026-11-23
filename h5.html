@@ -8,6 +8,19 @@
   <link rel="stylesheet" href="proto-bar.css" />
 </head>
 <body>
+  <!-- 原型旁边切换查看按钮：查看免费抽奖 / 查看付费抽奖 -->
+  <aside class="h5-mode-switcher" id="h5ModeSwitcher" aria-label="H5抽奖样式切换">
+    <div class="mode-switcher-title">H5 样式预览</div>
+    <button type="button" class="mode-switch-btn is-active" id="switchFreeModeBtn" data-lottery-mode="free">
+      <span class="ms-dot"></span>
+      <span>查看免费抽奖</span>
+    </button>
+    <button type="button" class="mode-switch-btn" id="switchPaidModeBtn" data-lottery-mode="paid">
+      <span class="ms-dot"></span>
+      <span>查看付费抽奖</span>
+    </button>
+  </aside>
+
   <div class="app-shell">
     <!-- 顶部粘性导航栏：左上角改为平台 LOGO（已移除汉堡菜单按钮） -->
     <header class="site-header" id="siteHeader">
@@ -78,7 +91,7 @@
         <div class="hero-top-scrim"></div>
         <div class="hero-bottom-overlay">
           <div class="hero-badges-row">
-            <span class="badge-live blink">免费领号 · 进行中</span>
+            <span class="badge-live blink" id="heroLiveBadge">免费领号 · 进行中</span>
             <span class="badge-round">第 202601 期</span>
           </div>
           <h1 class="hero-title">本田 Fan 160 2025</h1>
@@ -142,11 +155,22 @@
 
       <!-- 主内容区 -->
       <div class="page-content">
-        <!-- 免费参与说明行（替代原「仅需 ¥ 0.05」） -->
+        <!-- 参与方式说明行 -->
         <div class="free-banner-row">
           <span class="free-banner-text">参与方式</span>
-          <span class="free-banner-pill">免费领号 · 无需购买</span>
+          <span class="free-banner-pill" id="participationPill">免费领号 · 无需购买</span>
         </div>
+
+        <!-- 付费抽奖专属：号码数量与对应价格档位选择区（免费模式隐藏） -->
+        <section class="paid-tiers-area" id="paidTiersArea" hidden aria-label="选择购买号码档位">
+          <div class="paid-tiers-head">
+            <span class="paid-tiers-title">选择购买档位</span>
+            <span class="paid-tiers-sub" id="paidTierRuleTip">支付 $2 可选择 2 个号码</span>
+          </div>
+          <div class="paid-tiers-grid" id="paidTiersGrid">
+            <!-- 由 app.js 动态渲染 -->
+          </div>
+        </section>
 
         <!-- 选号方式核心交互区（PRD R02：手动选号 / 系统随机分配） -->
         <section class="selection-area" id="selectionArea" aria-label="选择抽奖号码">
@@ -260,7 +284,7 @@
                 </svg>
               </span>
               <span class="cta-text-group">
-                <span class="cta-title">立即锁定号码</span>
+                <span class="cta-title" id="ctaTitle">立即锁定号码</span>
                 <span class="cta-trust" id="ctaSubtext">
                   <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" aria-hidden="true">
                     <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm-1.2 14.2L7 12.4l1.4-1.4 2.4 2.4 5-5L17.2 9.8Z" />
@@ -575,6 +599,40 @@
       <div class="success-actions">
         <button class="btn-green-full" id="openMyTicketsFromSuccessBtn" type="button">前往「我的号码」查看记录</button>
         <button class="btn-light-full" data-close-modal="lockSuccessModal" type="button">返回活动首页</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3.5 付费购号确认支付弹窗（仅付费抽奖模式触发） -->
+  <div class="modal-backdrop" id="payConfirmModal" hidden role="dialog" aria-modal="true" aria-labelledby="payConfirmTitle">
+    <div class="white-modal">
+      <div class="white-modal-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon-box modal-icon-box--green" aria-hidden="true">💳</span>
+          <div>
+            <h3 id="payConfirmTitle">确认购买抽奖号码</h3>
+            <p>本田 Fan 160 2025 · 支付后立即锁定号码</p>
+          </div>
+        </div>
+        <button class="modal-x-btn" data-close-modal="payConfirmModal" type="button" aria-label="关闭支付窗口">×</button>
+      </div>
+
+      <div class="order-summary-card" id="payConfirmSummary"></div>
+
+      <div class="pay-wallet-box">
+        <label class="pay-wallet-opt">
+          <input type="radio" name="h5PayChannel" value="平台余额支付" checked />
+          <span>平台账户余额支付（秒到锁号）</span>
+        </label>
+        <label class="pay-wallet-opt">
+          <input type="radio" name="h5PayChannel" value="PIX 快捷支付" />
+          <span>PIX / 银行卡快捷支付</span>
+        </label>
+      </div>
+
+      <div class="success-actions">
+        <button class="btn-green-full" id="confirmPaySubmitBtn" type="button">确认支付 $2.00</button>
+        <button class="btn-light-full" data-close-modal="payConfirmModal" type="button">取消</button>
       </div>
     </div>
   </div>

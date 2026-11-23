@@ -395,6 +395,29 @@
               </div>
             </div>
 
+            <!-- 号码价格（免费 / 付费 + 动态档位配置） -->
+            <div class="form-row form-row--top">
+              <label class="f-label"><i class="req">*</i> 号码价格 <span class="help-q" tabindex="0" data-tip-text="免费：用户无需支付即可按上限领号，H5 端展示「立即锁定号码」；付费：需配置号码数量及对应价格档位（如支付 $1 可选 1 个号码、$2 可选 2 个号码），H5 端展示「立即购买号码」与对应价格。活动发布后冻结。">?</span></label>
+              <div class="f-control">
+                <div class="inline-radios">
+                  <label><input type="radio" name="cfgPriceMode" value="free" data-freeze-field checked /> 免费</label>
+                  <label><input type="radio" name="cfgPriceMode" value="paid" data-freeze-field /> 付费</label>
+                </div>
+
+                <!-- 选择「付费」时展开的档位配置表 -->
+                <div class="price-tier-panel" id="priceTierPanel" hidden>
+                  <div class="price-tier-head">
+                    <span>号码数量（个）</span>
+                    <span>对应价格（$）</span>
+                    <span>档位标签（可选）</span>
+                    <span></span>
+                  </div>
+                  <div id="priceTierRows" class="price-tier-rows"></div>
+                  <div class="price-tier-tip">示例：配置数量 1、价格 1 表示「支付 $1 可选择 1 个号码」；配置数量 2、价格 2 表示「支付 $2 可选择 2 个号码」。</div>
+                </div>
+              </div>
+            </div>
+
             <!-- 发放方式（PRD R02：支持多选，与 H5 双模式一致） -->
             <div class="form-row">
               <label class="f-label"><i class="req">*</i> 发放方式 <span class="help-q" tabindex="0" data-tip-text="控制前台 H5 允许的选号方式：可单选或同时开启「用户自选号码」与「系统自动分配」。活动发布后冻结不可变更。">?</span></label>
