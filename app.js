@@ -1342,8 +1342,8 @@
           <div class="order-record-card ${isWon ? "order-record-card--won" : ""}">
             <div class="order-record-head">
               <div class="order-record-title-wrap">
-                <span class="order-record-title">号码：${rec.number}</span>
-                <button type="button" class="copy-inline-btn" data-copy-val="${rec.number}" data-copy-label="号码" aria-label="复制号码 ${rec.number}">
+                <span class="order-record-title">我的号码：${rec.number}</span>
+                <button type="button" class="copy-inline-btn" data-copy-val="${rec.number}" data-copy-label="我的号码" aria-label="复制我的号码 ${rec.number}">
                   <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <rect x="9" y="9" width="13" height="13" rx="2" />
                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
