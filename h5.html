@@ -69,8 +69,24 @@
           <!-- 登录后点击头像弹出的轻量菜单 -->
           <div class="avatar-popover" id="avatarPopover" hidden>
             <div class="avatar-popover-user">
-              <strong id="avatarPopoverName">账号：--</strong>
-              <span id="avatarPopoverUid">ID：--</span>
+              <div class="avatar-popover-row">
+                <strong id="avatarPopoverName">账号：--</strong>
+                <button type="button" class="avatar-copy-btn" id="copyPopoverNameBtn" title="复制账号" aria-label="复制账号">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="9" y="9" width="13" height="13" rx="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                </button>
+              </div>
+              <div class="avatar-popover-row">
+                <span id="avatarPopoverUid">ID：--</span>
+                <button type="button" class="avatar-copy-btn" id="copyPopoverUidBtn" title="复制ID" aria-label="复制ID">
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="9" y="9" width="13" height="13" rx="2" />
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                  </svg>
+                </button>
+              </div>
             </div>
             <button type="button" class="avatar-popover-item" id="popoverTicketsBtn">我的号码</button>
             <button type="button" class="avatar-popover-item avatar-popover-item--danger" id="popoverLogoutBtn">退出登录</button>

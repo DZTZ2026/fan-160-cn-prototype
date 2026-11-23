@@ -159,6 +159,8 @@
   const avatarPopover = document.getElementById("avatarPopover");
   const avatarPopoverName = document.getElementById("avatarPopoverName");
   const avatarPopoverUid = document.getElementById("avatarPopoverUid");
+  const copyPopoverNameBtn = document.getElementById("copyPopoverNameBtn");
+  const copyPopoverUidBtn = document.getElementById("copyPopoverUidBtn");
   const popoverTicketsBtn = document.getElementById("popoverTicketsBtn");
   const popoverLogoutBtn = document.getElementById("popoverLogoutBtn");
   const openSupportBtn = document.getElementById("openSupportBtn");
@@ -1197,6 +1199,22 @@
     openMyTicketsModal();
   });
 
+  if (copyPopoverNameBtn) {
+    copyPopoverNameBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!currentUser) return;
+      copyTextToClipboard(currentUser.phone || currentUser.nickname, copyPopoverNameBtn, "账号");
+    });
+  }
+
+  if (copyPopoverUidBtn) {
+    copyPopoverUidBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!currentUser) return;
+      copyTextToClipboard(currentUser.accountId, copyPopoverUidBtn, "ID");
+    });
+  }
+
   popoverLogoutBtn.addEventListener("click", () => {
     avatarPopover.hidden = true;
     saveCurrentUser(null);
@@ -1362,26 +1380,6 @@
                   ? `<div class="order-meta-line"><span>开奖号码：</span><span class="draw-number-pill">${drawNum}</span></div>`
                   : ""
               }
-              <div class="order-meta-line">
-                <span>账号：<span class="order-meta-value">${rec.phone}</span></span>
-                <button type="button" class="copy-inline-btn copy-inline-btn--sm" data-copy-val="${rec.phone}" data-copy-label="账号" aria-label="复制账号 ${rec.phone}">
-                  <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect x="9" y="9" width="13" height="13" rx="2" />
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                  </svg>
-                  <span>复制</span>
-                </button>
-              </div>
-              <div class="order-meta-line">
-                <span>账号ID：<span class="order-meta-value">${rec.accountId}</span></span>
-                <button type="button" class="copy-inline-btn copy-inline-btn--sm" data-copy-val="${rec.accountId}" data-copy-label="账号ID" aria-label="复制账号ID ${rec.accountId}">
-                  <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect x="9" y="9" width="13" height="13" rx="2" />
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                  </svg>
-                  <span>复制</span>
-                </button>
-              </div>
               <div class="order-meta-line">
                 <span>获取方式：${rec.mode} · ${rec.payInfo || "免费领号"}</span>
               </div>
