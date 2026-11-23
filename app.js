@@ -1433,15 +1433,14 @@
     if (!ticketsModalStats) return;
     const total = list.length;
     let won = 0;
-    let drawn = 0;
+    let lost = 0;
     let pending = 0;
     list.forEach((rec) => {
       const s = rec.drawStatus || "待开奖";
       if (s === "中奖" || s === "已中奖") {
         won += 1;
-        drawn += 1;
-      } else if (s === "未中奖" || s === "已开奖") {
-        drawn += 1;
+      } else if (s === "未中奖") {
+        lost += 1;
       } else {
         pending += 1;
       }
@@ -1449,7 +1448,7 @@
     ticketsModalStats.innerHTML = `
       <span>号码总数：<strong>${total}</strong></span>
       <span>待开奖：<strong>${pending}</strong></span>
-      <span>已开奖：<strong>${drawn}</strong></span>
+      <span>未中奖：<strong>${lost}</strong></span>
       <span class="tickets-stat-won">中奖：<strong>${won}</strong></span>
     `;
   }
