@@ -546,6 +546,7 @@
                 <button type="button" class="link-blue" data-edit="${a.id}">修改</button>
                 <button type="button" class="link-blue" data-detail="${a.id}">详情</button>
                 ${a.type === "抽奖" ? `<button type="button" class="link-blue" data-settle="${a.id}">活动明细</button>` : ""}
+                ${a.type === "抽奖" ? `<button type="button" class="link-blue" data-draw="${a.id}">活动开奖</button>` : ""}
                 <button type="button" class="link-blue" data-toggle-close="${a.id}">${a.status === "已关闭" ? "重新开启" : "关闭活动"}</button>
                 <button type="button" class="link-blue" data-copy="${a.id}">复制</button>
               </div>
@@ -565,6 +566,9 @@
     });
     activityTableBody.querySelectorAll("[data-settle]").forEach((btn) => {
       btn.addEventListener("click", () => openActivityDetailsModal("participation", Number(btn.dataset.settle)));
+    });
+    activityTableBody.querySelectorAll("[data-draw]").forEach((btn) => {
+      btn.addEventListener("click", () => openActivityDrawModal(Number(btn.dataset.draw)));
     });
     activityTableBody.querySelectorAll("[data-toggle-close]").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -1270,6 +1274,10 @@
     const winNum = winTicket.number;
     const drawTime = nowStr();
     main.status = "已开奖";
+    main.drawLocked = true;
+    main.drawnAt = drawTime;
+    main.drawnBy = ROLE_LABELS[currentRole];
+    main.drawMethod = "随机开奖";
     main.winningNumber = winNum;
     drawResults.unshift({
       round: "第 202601 期",
@@ -1564,6 +1572,436 @@
   });
 
   document.getElementById("openSettlementFromStatsBtn").addEventListener("click", () => openActivityDetailsModal("settlement"));
+
+  // ===========================
+  // 4.5 活动开奖弹窗（支持随机 / 手动输入，二次确认后生效且不可修改）
+  // ===========================
+  let activeDrawActId = null;
+  let activeDrawMode = "random";
+  let drawDraftEntries = [];
+  let pendingDrawPayload = null;
+
+  const drawModalTitle = document.getElementById("drawModalTitle");
+  const drawLockedBanner = document.getElementById("drawLockedBanner");
+  const drawLockedBannerText = document.getElementById("drawLockedBannerText");
+  const drawActivitySummary = document.getElementById("drawActivitySummary");
+  const drawModeOptRandom = document.getElementById("drawModeOptRandom");
+  const drawModeOptManual = document.getElementById("drawModeOptManual");
+  const drawRollAllBtn = document.getElementById("drawRollAllBtn");
+  const drawPrizeRowsBody = document.getElementById("drawPrizeRowsBody");
+  const drawRemarkInput = document.getElementById("drawRemarkInput");
+  const drawSubmitBtn = document.getElementById("drawSubmitBtn");
+  const drawConfirmSummary = document.getElementById("drawConfirmSummary");
+  const drawFinalConfirmBtn = document.getElementById("drawFinalConfirmBtn");
+
+  function padDrawNum(n, digits = 6) {
+    return String(n).padStart(digits, "0");
+  }
+
+  function getActivityPoolBounds(act) {
+    const min = Math.max(1, parseInt(act.numStart || "1", 10) || 1);
+    const max = Math.max(min, parseInt(act.numEnd || String(act.totalPool || 100000), 10) || 100000);
+    const digits = act.digits || 6;
+    return { min, max, digits };
+  }
+
+  function parseNumberTokens(text) {
+    return String(text || "")
+      .split(/[,，、\s;；]+/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
+
+  function pickRandomNumbersForRow(act, qty, excludeSet, preferIssuedPool = false) {
+    const { min, max, digits } = getActivityPoolBounds(act);
+    const cap = Math.min(Math.max(1, Number(qty) || 1), 20);
+    const picked = [];
+
+    if (preferIssuedPool) {
+      const validPool = loadMergedTickets().filter((t) => t.status === "有效" && !excludeSet.has(t.number));
+      if (validPool.length > 0) {
+        const chosen = validPool[Math.floor(Math.random() * validPool.length)];
+        picked.push(chosen.number);
+        excludeSet.add(chosen.number);
+      }
+    }
+
+    let guard = 0;
+    while (picked.length < cap && guard < cap * 40 + 300) {
+      guard += 1;
+      const num = padDrawNum(Math.floor(min + Math.random() * (max - min + 1)), digits);
+      if (!excludeSet.has(num)) {
+        excludeSet.add(num);
+        picked.push(num);
+      }
+    }
+    return picked;
+  }
+
+  function getWinnerLookupHtml(tokens, mergedTickets) {
+    if (tokens.length === 0) {
+      return `<span class="draw-winner-empty">暂未录入中奖号码</span>`;
+    }
+    const ticketMap = new Map();
+    mergedTickets.forEach((t) => {
+      if (t.status === "有效" && !ticketMap.has(t.number)) {
+        ticketMap.set(t.number, t);
+      }
+    });
+    const matched = tokens.map((num) => ({ num, ticket: ticketMap.get(num) })).filter((x) => x.ticket);
+    if (tokens.length === 1) {
+      if (matched.length === 1) {
+        const t = matched[0].ticket;
+        return `<div class="draw-winner-cell"><span class="draw-winner-matched">${t.phone}</span><br/>ID: ${t.accountId}</div>`;
+      }
+      return `<div class="draw-winner-cell"><span class="draw-winner-empty">号池有效号（开奖后按实名归属核验）</span></div>`;
+    }
+    if (matched.length > 0) {
+      const first = matched[0].ticket;
+      return `<div class="draw-winner-cell"><span class="draw-winner-matched">已匹配 ${matched.length}/${tokens.length} 个</span><br/>如：${first.phone} (${first.accountId})</div>`;
+    }
+    return `<div class="draw-winner-cell"><span class="draw-winner-empty">已录入 ${tokens.length} 个有效号池号码</span></div>`;
+  }
+
+  function renderDrawModalState() {
+    const act = activities.find((a) => a.id === activeDrawActId) || activities[0];
+    if (!act) return;
+    const isLocked = Boolean(act.drawLocked || act.status === "已开奖");
+    const mergedTickets = loadMergedTickets();
+    const { min, max, digits } = getActivityPoolBounds(act);
+
+    drawModalTitle.textContent = `活动开奖 · ${act.name}（ID: ${act.id}）`;
+
+    if (isLocked) {
+      drawLockedBanner.hidden = false;
+      drawLockedBannerText.innerHTML = `<strong>本期活动已完成开奖并永久锁定，不可修改。</strong> 开奖时间：${act.drawnAt || nowStr()} · 操作人：${act.drawnBy || ROLE_LABELS[currentRole]} · 开奖方式：${act.drawMethod || "随机开奖"}`;
+    } else {
+      drawLockedBanner.hidden = true;
+    }
+
+    const validIssued = Math.min(act.totalPool || 100000, BASE_ISSUED + Math.max(0, mergedTickets.filter((t) => t.status === "有效").length - 2));
+    drawActivitySummary.innerHTML = `
+      <div class="detail-sum-box"><span>活动期号</span><strong>${act.round || "第 202601 期"}</strong></div>
+      <div class="detail-sum-box"><span>号码范围（${digits}位）</span><strong>${padDrawNum(min, digits)} - ${padDrawNum(max, digits)}</strong></div>
+      <div class="detail-sum-box"><span>有效参与号码</span><strong>${validIssued.toLocaleString()} / ${(act.totalPool || 100000).toLocaleString()}</strong></div>
+      <div class="detail-sum-box"><span>当前开奖状态</span><strong style="color:${isLocked ? "#15803d" : "#fa8c16"};">${isLocked ? "已开奖（已锁定）" : "待开奖 / 可开奖"}</strong></div>
+    `;
+
+    // 同步单选模式状态
+    document.querySelectorAll('input[name="activityDrawMode"]').forEach((radio) => {
+      radio.checked = radio.value === activeDrawMode;
+      radio.disabled = isLocked;
+    });
+    drawModeOptRandom.classList.toggle("is-active", activeDrawMode === "random");
+    drawModeOptManual.classList.toggle("is-active", activeDrawMode === "manual");
+    drawModeOptRandom.classList.toggle("is-disabled", isLocked);
+    drawModeOptManual.classList.toggle("is-disabled", isLocked);
+
+    drawRollAllBtn.hidden = isLocked || activeDrawMode !== "random";
+    drawRemarkInput.disabled = isLocked;
+    drawSubmitBtn.hidden = isLocked;
+
+    drawPrizeRowsBody.innerHTML = drawDraftEntries
+      .map((entry, idx) => {
+        const isFirst = idx === 0;
+        const tokens = parseNumberTokens(entry.numbersText);
+        const placeholder = isFirst
+          ? activeDrawMode === "random"
+            ? "点击右侧「随机」生成 6 位大奖号码"
+            : "请输入 6 位中奖号码（如 052818）"
+          : activeDrawMode === "random"
+          ? `点击右侧「随机」生成最多 ${entry.qty} 个号码`
+          : `选填：输入 6 位号码，多个用逗号分隔（最多 ${entry.qty} 个）`;
+        return `
+          <tr>
+            <td><strong>${isFirst ? '<i class="req">*</i> ' : ""}${entry.name}</strong></td>
+            <td style="text-align:left;">${entry.content}</td>
+            <td>${entry.qty} 名</td>
+            <td>
+              <input
+                type="text"
+                class="erp-input draw-num-input"
+                data-draw-input="${idx}"
+                value="${entry.numbersText}"
+                placeholder="${placeholder}"
+                ${isLocked ? "disabled" : activeDrawMode === "random" ? "readonly" : ""}
+              />
+              <div class="draw-num-hint">
+                ${
+                  isLocked
+                    ? `已锁定生效（共 ${tokens.length} 个中奖号码）`
+                    : isFirst
+                    ? "必填：1 个 6 位唯一号码"
+                    : `选填：已填 ${tokens.length} / ${entry.qty} 个，逗号分隔`
+                }
+              </div>
+            </td>
+            <td data-draw-winner-cell="${idx}">${getWinnerLookupHtml(tokens, mergedTickets)}</td>
+            <td>
+              ${
+                isLocked
+                  ? `<span style="color:#15803d;font-weight:700;font-size:11.5px;">🔒 已锁定</span>`
+                  : activeDrawMode === "random"
+                  ? `<button type="button" class="btn-outline-blue" style="height:26px;padding:0 10px;font-size:11.5px;" data-roll-row="${idx}">🎲 随机</button>`
+                  : `<button type="button" class="link-blue" data-clear-row="${idx}">清空</button>`
+              }
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
+
+    if (!isLocked) {
+      drawPrizeRowsBody.querySelectorAll("[data-draw-input]").forEach((inp) => {
+        inp.addEventListener("input", () => {
+          const idx = Number(inp.dataset.drawInput);
+          drawDraftEntries[idx].numbersText = inp.value;
+          const tokens = parseNumberTokens(inp.value);
+          const cell = drawPrizeRowsBody.querySelector(`[data-draw-winner-cell="${idx}"]`);
+          if (cell) cell.innerHTML = getWinnerLookupHtml(tokens, loadMergedTickets());
+          const hint = inp.parentElement.querySelector(".draw-num-hint");
+          if (hint && idx > 0) {
+            hint.textContent = `选填：已填 ${tokens.length} / ${drawDraftEntries[idx].qty} 个，逗号分隔`;
+          }
+        });
+      });
+
+      drawPrizeRowsBody.querySelectorAll("[data-roll-row]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const idx = Number(btn.dataset.rollRow);
+          const exclude = new Set();
+          drawDraftEntries.forEach((e, i) => {
+            if (i !== idx) parseNumberTokens(e.numbersText).forEach((n) => exclude.add(n));
+          });
+          const picked = pickRandomNumbersForRow(act, drawDraftEntries[idx].qty, exclude, idx === 0);
+          drawDraftEntries[idx].numbersText = picked.join(", ");
+          renderDrawModalState();
+        });
+      });
+
+      drawPrizeRowsBody.querySelectorAll("[data-clear-row]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const idx = Number(btn.dataset.clearRow);
+          drawDraftEntries[idx].numbersText = "";
+          renderDrawModalState();
+        });
+      });
+    }
+  }
+
+  function openActivityDrawModal(actId) {
+    const act = activities.find((a) => a.id === actId) || activities[0];
+    if (!act) return;
+    activeDrawActId = act.id;
+    pendingDrawPayload = null;
+
+    const isLocked = Boolean(act.drawLocked || act.status === "已开奖");
+    if (isLocked && Array.isArray(act.drawResultEntries) && act.drawResultEntries.length > 0) {
+      activeDrawMode = act.drawMethod === "手动输入" ? "manual" : "random";
+      drawDraftEntries = act.drawResultEntries.map((e) => ({ ...e }));
+      drawRemarkInput.value = act.drawRemark || "";
+    } else if (isLocked && act.winningNumber) {
+      activeDrawMode = "random";
+      const prizes = (act.prizes && act.prizes.length > 0)
+        ? act.prizes
+        : [{ name: "一等奖", content: act.name, qty: 1 }];
+      drawDraftEntries = prizes.map((p, idx) => ({
+        name: p.name,
+        content: p.content,
+        qty: p.qty || 1,
+        numbersText: idx === 0 ? act.winningNumber : ""
+      }));
+      drawRemarkInput.value = act.drawRemark || "";
+    } else {
+      activeDrawMode = "random";
+      const prizes = (act.prizes && act.prizes.length > 0)
+        ? act.prizes
+        : [{ name: "一等奖", content: act.name, qty: 1 }];
+      drawDraftEntries = prizes.map((p) => ({
+        name: p.name,
+        content: p.content,
+        qty: p.qty || 1,
+        numbersText: ""
+      }));
+      drawRemarkInput.value = "";
+    }
+
+    renderDrawModalState();
+    openModal("activityDrawModal");
+  }
+
+  document.querySelectorAll('input[name="activityDrawMode"]').forEach((radio) => {
+    radio.addEventListener("change", () => {
+      const act = activities.find((a) => a.id === activeDrawActId);
+      if (act && (act.drawLocked || act.status === "已开奖")) return;
+      activeDrawMode = radio.value;
+      renderDrawModalState();
+    });
+  });
+
+  drawRollAllBtn.addEventListener("click", () => {
+    const act = activities.find((a) => a.id === activeDrawActId);
+    if (!act || act.drawLocked || act.status === "已开奖") return;
+    const exclude = new Set();
+    drawDraftEntries = drawDraftEntries.map((entry, idx) => {
+      const picked = pickRandomNumbersForRow(act, entry.qty, exclude, idx === 0);
+      return { ...entry, numbersText: picked.join(", ") };
+    });
+    renderDrawModalState();
+    showToast("已随机抽取本期全部奖项中奖号码，请核对后点击「确认开奖」");
+  });
+
+  drawSubmitBtn.addEventListener("click", () => {
+    const act = activities.find((a) => a.id === activeDrawActId);
+    if (!act) return;
+    if (act.drawLocked || act.status === "已开奖") {
+      showToast("本期开奖结果已锁定，不可修改");
+      return;
+    }
+    if (currentRole === "finance") {
+      showToast("越权拦截：财务审核员无权执行活动开奖，请切换为运营管理员或开奖授权员");
+      return;
+    }
+
+    const { min, max, digits } = getActivityPoolBounds(act);
+    const seen = new Set();
+    const validatedEntries = [];
+
+    for (let i = 0; i < drawDraftEntries.length; i += 1) {
+      const entry = drawDraftEntries[i];
+      const tokens = parseNumberTokens(entry.numbersText);
+      if (i === 0 && tokens.length !== 1) {
+        showToast(`请先${activeDrawMode === "random" ? "随机生成" : "手动输入"}「${entry.name}」的 1 个 ${digits} 位中奖号码`);
+        return;
+      }
+      if (tokens.length > entry.qty) {
+        showToast(`「${entry.name}」最多录入 ${entry.qty} 个中奖号码，当前已填 ${tokens.length} 个`);
+        return;
+      }
+      const normalized = [];
+      for (const tok of tokens) {
+        if (!/^\d+$/.test(tok)) {
+          showToast(`「${entry.name}」中的号码 "${tok}" 格式错误，必须为纯数字`);
+          return;
+        }
+        const nVal = parseInt(tok, 10);
+        if (nVal < min || nVal > max) {
+          showToast(`「${entry.name}」中的号码 "${tok}" 超出活动号码范围（${padDrawNum(min, digits)}-${padDrawNum(max, digits)}）`);
+          return;
+        }
+        const fmt = padDrawNum(nVal, digits);
+        if (seen.has(fmt)) {
+          showToast(`中奖号码 ${fmt} 存在重复，请确保各奖项号码互不重复`);
+          return;
+        }
+        seen.add(fmt);
+        normalized.push(fmt);
+      }
+      validatedEntries.push({
+        ...entry,
+        numbers: normalized,
+        numbersText: normalized.join(", ")
+      });
+    }
+
+    const mergedTickets = loadMergedTickets();
+    const firstNum = validatedEntries[0].numbers[0];
+    const firstTicket = mergedTickets.find((t) => t.status === "有效" && t.number === firstNum);
+
+    pendingDrawPayload = {
+      actId: act.id,
+      modeLabel: activeDrawMode === "random" ? "随机开奖" : "手动输入",
+      remark: drawRemarkInput.value.trim(),
+      entries: validatedEntries,
+      firstNum,
+      firstTicket
+    };
+
+    drawConfirmSummary.innerHTML = `
+      <div class="draw-confirm-row"><span>活动名称 / 期号</span><strong>${act.name}（${act.round || "第 202601 期"}）</strong></div>
+      <div class="draw-confirm-row"><span>开奖方式</span><strong>${pendingDrawPayload.modeLabel}</strong></div>
+      ${validatedEntries
+        .filter((e) => e.numbers.length > 0)
+        .map((e, idx) => {
+          const displayNums = e.numbers.length <= 5 ? e.numbers.join("、") : `${e.numbers.slice(0, 4).join("、")} 等 ${e.numbers.length} 个`;
+          return `<div class="draw-confirm-row"><span>${e.name}（${e.content}）</span><strong style="${idx === 0 ? "color:#15803d;font-size:15px;" : ""}">${displayNums}</strong></div>`;
+        })
+        .join("")}
+      <div class="draw-confirm-row"><span>一等奖中奖者</span><span>${firstTicket ? `${firstTicket.phone}（${firstTicket.accountId}）` : "按号池实名归属核验"}</span></div>
+      ${pendingDrawPayload.remark ? `<div class="draw-confirm-row"><span>开奖备注</span><span>${pendingDrawPayload.remark}</span></div>` : ""}
+      <div class="draw-confirm-row"><span>操作人</span><span>${ROLE_LABELS[currentRole]}</span></div>
+    `;
+
+    openModal("drawDoubleConfirmModal");
+  });
+
+  drawFinalConfirmBtn.addEventListener("click", () => {
+    if (!pendingDrawPayload) return;
+    const act = activities.find((a) => a.id === pendingDrawPayload.actId);
+    if (!act) return;
+    if (act.drawLocked || act.status === "已开奖") {
+      closeModal("drawDoubleConfirmModal");
+      showToast("本期开奖结果已锁定，不可重复修改");
+      return;
+    }
+
+    const drawTime = nowStr();
+    const { firstNum, firstTicket, modeLabel, remark, entries } = pendingDrawPayload;
+    const roundLabel = act.round && act.round.includes("202") ? act.round : "第 202601 期";
+
+    // 锁定活动开奖结果（永久不可修改）
+    act.status = "已开奖";
+    act.drawLocked = true;
+    act.winningNumber = firstNum;
+    act.drawnAt = drawTime;
+    act.drawnBy = ROLE_LABELS[currentRole];
+    act.drawMethod = modeLabel;
+    act.drawRemark = remark;
+    act.drawResultEntries = entries.map((e) => ({
+      name: e.name,
+      content: e.content,
+      qty: e.qty,
+      numbersText: e.numbersText
+    }));
+    act.operateTime = drawTime;
+
+    // 同步至「活动明细 -> 抽奖结果」
+    const mergedTickets = loadMergedTickets();
+    const allWinningNums = new Set();
+    entries.forEach((e) => e.numbers.forEach((n) => allWinningNums.add(n)));
+
+    drawResults.unshift({
+      round: roundLabel,
+      prize: `${entries[0].name} ${entries[0].content}`,
+      drawnAt: drawTime,
+      winNumber: firstNum,
+      winnerAccount: firstTicket ? firstTicket.phone : "待核验实名账号",
+      winnerId: firstTicket ? firstTicket.accountId : "-"
+    });
+
+    // 同步至号码池记录（H5 我的号码同步感知开奖状态）
+    const updatedTickets = mergedTickets.map((r) => {
+      if (r.status !== "有效") return r;
+      if (allWinningNums.has(r.number)) {
+        return { ...r, drawStatus: "中奖", winningNumber: r.number };
+      }
+      return { ...r, drawStatus: "未中奖", winningNumber: firstNum };
+    });
+    saveMergedTickets(updatedTickets);
+
+    addAuditLog(
+      "活动开奖",
+      `${modeLabel}并锁定生效`,
+      `活动 ID:${act.id}「${act.name}」确认开奖生效并永久锁定，一等奖号码 ${firstNum}${remark ? `，备注：${remark}` : ""}。`
+    );
+
+    drawDraftEntries = act.drawResultEntries.map((e) => ({ ...e }));
+    pendingDrawPayload = null;
+    closeModal("drawDoubleConfirmModal");
+    renderActivityTable();
+    renderDrawModalState();
+    showToast(`开奖结果已生效并永久锁定！一等奖中奖号码：${firstNum}`);
+  });
 
   // ===========================
   // 5. 配置项问号 Hover 智能气泡提示（防裁切）

@@ -950,6 +950,94 @@
     </div>
   </div>
 
+  <!-- =========================================================
+       弹窗 4：活动开奖（支持随机 / 手动输入，二次确认后生效且不可修改）
+       ========================================================= -->
+  <div class="erp-modal-mask" id="activityDrawModal" hidden role="dialog" aria-modal="true" aria-labelledby="drawModalTitle">
+    <div class="erp-modal erp-modal--lg" style="width:940px;">
+      <div class="erp-modal-header">
+        <h3 id="drawModalTitle">活动开奖</h3>
+        <button type="button" class="erp-modal-close" data-close-modal="activityDrawModal">×</button>
+      </div>
+      <div class="erp-modal-body">
+        <!-- 已开奖锁定提示条 -->
+        <div class="draw-locked-banner" id="drawLockedBanner" hidden>
+          <span class="draw-locked-icon">🔒</span>
+          <div id="drawLockedBannerText">本期活动已完成开奖并永久锁定，开奖结果不可修改。</div>
+        </div>
+
+        <!-- 活动基础概览 -->
+        <div class="detail-summary-bar" id="drawActivitySummary"></div>
+
+        <!-- 开奖方式切换：随机开奖 / 手动输入 -->
+        <div class="draw-mode-toolbar" id="drawModeToolbar">
+          <div class="draw-mode-left">
+            <span class="draw-mode-label">开奖方式：</span>
+            <label class="draw-mode-opt is-active" id="drawModeOptRandom">
+              <input type="radio" name="activityDrawMode" value="random" checked />
+              <span>🎲 随机开奖</span>
+            </label>
+            <label class="draw-mode-opt" id="drawModeOptManual">
+              <input type="radio" name="activityDrawMode" value="manual" />
+              <span>✍️ 手动输入</span>
+            </label>
+          </div>
+          <button type="button" class="btn-outline-blue" id="drawRollAllBtn">🎲 一键随机抽取全部奖项</button>
+        </div>
+
+        <!-- 奖项开奖号码录入 / 展示表 -->
+        <div class="erp-table-wrap" style="max-height:320px;">
+          <table class="erp-table erp-table--compact" style="min-width:780px;">
+            <thead>
+              <tr>
+                <th style="width:90px;">奖项级别</th>
+                <th style="width:190px;">奖品内容</th>
+                <th style="width:66px;">名额</th>
+                <th>中奖号码（6位，范围 000001-100000）</th>
+                <th style="width:190px;">匹配中奖者（账号 / ID）</th>
+                <th style="width:82px;">操作</th>
+              </tr>
+            </thead>
+            <tbody id="drawPrizeRowsBody"></tbody>
+          </table>
+        </div>
+
+        <!-- 开奖备注 -->
+        <div class="draw-remark-row">
+          <label for="drawRemarkInput">开奖依据 / 备注：</label>
+          <input type="text" id="drawRemarkInput" class="erp-input" placeholder="选填：如 巴西联邦彩票头奖尾数 / 后台人工核验开奖" />
+        </div>
+      </div>
+      <div class="erp-modal-footer">
+        <button type="button" class="btn-default" data-close-modal="activityDrawModal">关闭</button>
+        <button type="button" class="btn-blue" id="drawSubmitBtn">确认开奖</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       弹窗 5：活动开奖二次确认弹窗（确认后生效，永久锁定不可修改）
+       ========================================================= -->
+  <div class="erp-modal-mask erp-modal-mask--top" id="drawDoubleConfirmModal" hidden role="dialog" aria-modal="true" aria-labelledby="drawConfirmTitle">
+    <div class="erp-modal" style="width:560px;">
+      <div class="erp-modal-header">
+        <h3 id="drawConfirmTitle">⚠️ 二次确认：确认提交开奖结果？</h3>
+        <button type="button" class="erp-modal-close" data-close-modal="drawDoubleConfirmModal">×</button>
+      </div>
+      <div class="erp-modal-body">
+        <div class="draw-danger-alert">
+          <strong>重要提示（不可逆操作）：</strong>
+          点击下方「确认生效（不可修改）」后，本次活动开奖结果将立即生效并同步至活动明细与前台公示，<strong>结果永久锁定，后续不可修改或撤销</strong>，请仔细核对中奖号码！
+        </div>
+        <div class="draw-confirm-summary" id="drawConfirmSummary"></div>
+      </div>
+      <div class="erp-modal-footer">
+        <button type="button" class="btn-default" data-close-modal="drawDoubleConfirmModal">返回修改</button>
+        <button type="button" class="btn-danger-solid" id="drawFinalConfirmBtn">确认生效（不可修改）</button>
+      </div>
+    </div>
+  </div>
+
   <div class="erp-toast" id="erpToast" hidden></div>
 
   <script src="proto-bar.js" data-client="admin"></script>

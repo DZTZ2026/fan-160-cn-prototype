@@ -1549,6 +1549,214 @@ input[disabled] {
   gap: 8px;
 }
 
+/* 活动开奖弹窗 & 二次确认弹窗 */
+.erp-modal-mask--top {
+  z-index: 165;
+  background: rgba(0, 0, 0, 0.56);
+}
+
+.draw-locked-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.draw-locked-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.draw-mode-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 9px 12px;
+  margin-bottom: 12px;
+}
+
+.draw-mode-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.draw-mode-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #333333;
+}
+
+.draw-mode-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 5px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #374151;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.14s ease, background-color 0.14s ease, color 0.14s ease;
+}
+
+.draw-mode-opt input {
+  accent-color: var(--erp-blue);
+  margin: 0;
+}
+
+.draw-mode-opt.is-active {
+  border-color: var(--erp-blue);
+  background: #e6f4ff;
+  color: var(--erp-blue);
+}
+
+.draw-mode-opt.is-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.draw-num-input {
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.draw-num-input[readonly] {
+  background: #f5f7fa;
+  color: #111827;
+  cursor: default;
+}
+
+.draw-num-input:disabled {
+  background: #f5f7fa;
+  color: #15803d;
+  border-color: #d9f7be;
+  cursor: not-allowed;
+}
+
+.draw-num-hint {
+  font-size: 11px;
+  color: #64748b;
+  text-align: left;
+  margin-top: 3px;
+}
+
+.draw-winner-cell {
+  font-size: 11.5px;
+  color: #374151;
+  text-align: left;
+  line-height: 1.45;
+}
+
+.draw-winner-matched {
+  color: #15803d;
+  font-weight: 700;
+}
+
+.draw-winner-empty {
+  color: #9ca3af;
+}
+
+.draw-remark-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.draw-remark-row label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.draw-remark-row .erp-input {
+  flex: 1;
+}
+
+.draw-danger-alert {
+  background: #fff2f0;
+  border: 1px solid #ffccc7;
+  color: #cf1322;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.draw-confirm-summary {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12.5px;
+}
+
+.draw-confirm-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px dashed #e2e8f0;
+  padding-bottom: 7px;
+}
+
+.draw-confirm-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.draw-confirm-row > span:first-child {
+  color: #64748b;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.draw-confirm-row > :last-child {
+  text-align: right;
+  color: #111827;
+  word-break: break-all;
+}
+
+.btn-danger-solid {
+  height: 32px;
+  padding: 0 16px;
+  border-radius: 4px;
+  border: 1px solid #dc2626;
+  background: #dc2626;
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.14s ease;
+}
+
+.btn-danger-solid:hover {
+  background: #b91c1c;
+  border-color: #b91c1c;
+}
+
 .erp-toast {
   position: fixed;
   bottom: 24px;
