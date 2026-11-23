@@ -234,8 +234,10 @@
   const lookupResultArea = document.getElementById("lookupResultArea");
   const ticketsModalStats = document.getElementById("ticketsModalStats");
   const ticketsFilterBar = document.getElementById("ticketsFilterBar");
-  const ticketsStatusFilters = document.getElementById("ticketsStatusFilters");
-  const ticketsTimeFilters = document.getElementById("ticketsTimeFilters");
+  const ticketsStatusSelect = document.getElementById("ticketsStatusSelect");
+  const ticketsTimeSelect = document.getElementById("ticketsTimeSelect");
+  const ticketsSearchBtn = document.getElementById("ticketsSearchBtn");
+  const ticketsResetBtn = document.getElementById("ticketsResetBtn");
 
   const openAttributionInfoBtn = document.getElementById("openAttributionInfoBtn");
   const openSelfExclusionBtn = document.getElementById("openSelfExclusionBtn");
@@ -1469,33 +1471,26 @@
   }
 
   function syncTicketsFilterButtons() {
-    if (ticketsStatusFilters) {
-      ticketsStatusFilters.querySelectorAll("[data-status-filter]").forEach((btn) => {
-        btn.classList.toggle("is-active", btn.dataset.statusFilter === ticketsStatusFilter);
-      });
+    if (ticketsStatusSelect) {
+      ticketsStatusSelect.value = ticketsStatusFilter;
     }
-    if (ticketsTimeFilters) {
-      ticketsTimeFilters.querySelectorAll("[data-time-filter]").forEach((btn) => {
-        btn.classList.toggle("is-active", btn.dataset.timeFilter === ticketsTimeFilter);
-      });
+    if (ticketsTimeSelect) {
+      ticketsTimeSelect.value = ticketsTimeFilter;
     }
   }
 
-  if (ticketsStatusFilters) {
-    ticketsStatusFilters.addEventListener("click", (e) => {
-      const btn = e.target.closest("[data-status-filter]");
-      if (!btn) return;
-      ticketsStatusFilter = btn.dataset.statusFilter;
-      syncTicketsFilterButtons();
+  if (ticketsSearchBtn) {
+    ticketsSearchBtn.addEventListener("click", () => {
+      ticketsStatusFilter = ticketsStatusSelect ? ticketsStatusSelect.value : "all";
+      ticketsTimeFilter = ticketsTimeSelect ? ticketsTimeSelect.value : "all";
       renderMyTickets();
     });
   }
 
-  if (ticketsTimeFilters) {
-    ticketsTimeFilters.addEventListener("click", (e) => {
-      const btn = e.target.closest("[data-time-filter]");
-      if (!btn) return;
-      ticketsTimeFilter = btn.dataset.timeFilter;
+  if (ticketsResetBtn) {
+    ticketsResetBtn.addEventListener("click", () => {
+      ticketsStatusFilter = "all";
+      ticketsTimeFilter = "all";
       syncTicketsFilterButtons();
       renderMyTickets();
     });

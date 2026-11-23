@@ -672,29 +672,25 @@
         <button class="modal-x-btn" data-close-modal="ticketsModal" type="button" aria-label="关闭查询窗口">×</button>
       </div>
 
-      <!-- 筛选区：开奖状态 + 时间范围 -->
+      <!-- 紧凑筛选条：开奖状态下拉 + 时间范围下拉 + 搜索/重置 -->
       <div class="tickets-filter-bar" id="ticketsFilterBar" hidden>
-        <div class="tickets-filter-group">
-          <span class="tickets-filter-label">开奖状态</span>
-          <div class="tickets-filter-chips" id="ticketsStatusFilters" role="group" aria-label="按开奖状态筛选">
-            <button type="button" class="tickets-chip is-active" data-status-filter="all">全部</button>
-            <button type="button" class="tickets-chip" data-status-filter="待开奖">待开奖</button>
-            <button type="button" class="tickets-chip" data-status-filter="未中奖">未中奖</button>
-            <button type="button" class="tickets-chip" data-status-filter="中奖">中奖</button>
-          </div>
-        </div>
-        <div class="tickets-filter-group">
-          <span class="tickets-filter-label">时间范围</span>
-          <div class="tickets-filter-chips" id="ticketsTimeFilters" role="group" aria-label="按时间范围筛选">
-            <button type="button" class="tickets-chip is-active" data-time-filter="all">全部</button>
-            <button type="button" class="tickets-chip" data-time-filter="today">今天</button>
-            <button type="button" class="tickets-chip" data-time-filter="yesterday">昨天</button>
-            <button type="button" class="tickets-chip" data-time-filter="7d">近7天</button>
-            <button type="button" class="tickets-chip" data-time-filter="30d">近30天</button>
-            <button type="button" class="tickets-chip" data-time-filter="2m">近2月</button>
-            <button type="button" class="tickets-chip" data-time-filter="3m">近3月</button>
-          </div>
-        </div>
+        <select class="tickets-select" id="ticketsStatusSelect" aria-label="开奖状态">
+          <option value="all">状态：全部</option>
+          <option value="待开奖">待开奖</option>
+          <option value="未中奖">未中奖</option>
+          <option value="中奖">中奖</option>
+        </select>
+        <select class="tickets-select" id="ticketsTimeSelect" aria-label="时间范围">
+          <option value="all">时间：全部</option>
+          <option value="today">今天</option>
+          <option value="yesterday">昨天</option>
+          <option value="7d">近7天</option>
+          <option value="30d">近30天</option>
+          <option value="2m">近2月</option>
+          <option value="3m">近3月</option>
+        </select>
+        <button type="button" class="tickets-action-btn tickets-action-btn--primary" id="ticketsSearchBtn">搜索</button>
+        <button type="button" class="tickets-action-btn" id="ticketsResetBtn">重置</button>
       </div>
 
       <div id="lookupResultArea"></div>
