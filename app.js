@@ -133,7 +133,8 @@
   let selectionMode = "manual"; // "manual" | "random"
   let currentBatchIdx = 0;
   let selectedManualNumbers = ["052819"];
-  let randomPreviewNumber = null;
+  let randomPreviewNumbers = [];
+  let randomRollTimer = null;
   let selectedCurrency = CURRENCIES[0]; // 默认 USD(美元)
   let pendingLockAfterAuth = false;
   let pendingPayIsNewReg = false;
@@ -369,6 +370,102 @@
     return "099888";
   }
 
+  function generateUniqueAvailableNumbers(count) {
+    const target = Math.max(1, Number(count) || 1);
+    const taken = getAllTakenNumbers();
+    const list = [];
+    let guard = 0;
+    while (list.length < target && guard < target * 40 + 400) {
+      guard += 1;
+      const candidate = formatNumber6(Math.floor(1 + Math.random() * TOTAL_POOL));
+      if (!taken.has(candidate)) {
+        taken.add(candidate);
+        list.push(candidate);
+      }
+    }
+    return list;
+  }
+
+  function stopRandomRoll() {
+    if (randomRollTimer) {
+      clearInterval(randomRollTimer);
+      randomRollTimer = null;
+    }
+    randomSlots.classList.remove("is-rolling");
+  }
+
+  function syncRandomPreviewToCount() {
+    stopRandomRoll();
+    const count = getMaxPickCount();
+    if (randomPreviewNumbers.length === 0) return;
+
+    const taken = getAllTakenNumbers();
+    const valid = randomPreviewNumbers.filter((n) => !taken.has(n)).slice(0, count);
+    const used = new Set([...taken, ...valid]);
+    let guard = 0;
+    while (valid.length < count && guard < count * 40 + 200) {
+      guard += 1;
+      const candidate = formatNumber6(Math.floor(1 + Math.random() * TOTAL_POOL));
+      if (!used.has(candidate)) {
+        used.add(candidate);
+        valid.push(candidate);
+      }
+    }
+    randomPreviewNumbers = valid;
+  }
+
+  function renderRandomPanel(rollingTempNumbers = null) {
+    const count = getMaxPickCount();
+    const isPaid = lotteryMode === "paid";
+    const tier = getCurrentPaidTier();
+    const displayList = Array.isArray(rollingTempNumbers)
+      ? rollingTempNumbers
+      : randomPreviewNumbers.length === count
+      ? randomPreviewNumbers
+      : [];
+
+    if (count === 1) {
+      randomSlots.classList.remove("random-slots--multi");
+      const digits = displayList[0] ? displayList[0].split("") : ["?", "?", "?", "?", "?", "?"];
+      randomSlots.innerHTML = digits.map((d) => `<span>${d}</span>`).join("");
+    } else {
+      randomSlots.classList.add("random-slots--multi");
+      const items =
+        displayList.length === count
+          ? displayList.map((num, idx) => ({ num, idx: idx + 1, placeholder: false }))
+          : Array.from({ length: count }, (_, idx) => ({ num: "??????", idx: idx + 1, placeholder: true }));
+      randomSlots.innerHTML = items
+        .map(
+          (item) => `
+            <div class="random-num-pill ${item.placeholder ? "is-placeholder" : ""}">
+              <span class="random-num-pill-idx">#${item.idx}</span>
+              <span class="random-num-pill-code">${item.num}</span>
+            </div>
+          `
+        )
+        .join("");
+    }
+
+    if (!rollingTempNumbers) {
+      const hasRolled = randomPreviewNumbers.length === count;
+      rollPreviewBtn.textContent = hasRolled
+        ? `🎲 重新随机生成 ${count} 个幸运号`
+        : `🎲 先试摇 ${count} 个幸运号看看`;
+
+      if (hasRolled) {
+        if (count === 1) {
+          randomDesc.innerHTML = `已为您随机生成幸运号 <strong>${randomPreviewNumbers[0]}</strong>（最终归属以实时号池校验为准）。`;
+        } else {
+          randomDesc.innerHTML = `已按当前档位随机生成 <strong>${count} 个唯一 6 位幸运号码</strong>（最终归属以支付锁池时的实时号池校验为准）。`;
+        }
+      } else if (isPaid) {
+        randomDesc.innerHTML = `支付 <strong>${formatUsd(tier.price)}</strong> 并完成后，系统将从当前剩余号池中为您自动分配 <strong>${count} 个唯一 6 位幸运号码</strong>，防重防并发冲突。`;
+      } else {
+        randomDesc.innerHTML = `点击下方「立即锁定号码」并完成注册/登录后，系统将从当前剩余号池中为您自动分配 <strong>1 个唯一 6 位幸运号码</strong>，防重防并发冲突。`;
+      }
+    }
+  }
+
   // ===========================
   // 进度条渲染（PRD R03）
   // ===========================
@@ -423,6 +520,7 @@
         if (selectedManualNumbers.length > maxCount) {
           selectedManualNumbers = selectedManualNumbers.slice(0, maxCount);
         }
+        syncRandomPreviewToCount();
         renderPaidTiers();
         renderManualGrid();
         renderAuthAndCtaState();
@@ -448,6 +546,7 @@
     if (selectedManualNumbers.length > maxCount) {
       selectedManualNumbers = selectedManualNumbers.slice(0, maxCount);
     }
+    syncRandomPreviewToCount();
 
     if (isPaid) {
       renderPaidTiers();
@@ -509,7 +608,6 @@
       `;
       ctaRightLabel.textContent = `可选 ${tier.qty} 个号码`;
       ctaRightValue.textContent = `$${Number(tier.price).toFixed(2)}`;
-      randomDesc.innerHTML = `支付 <strong>${formatUsd(tier.price)}</strong> 并完成后，系统将从当前剩余号池中为您自动分配 <strong>${tier.qty} 个唯一 6 位幸运号码</strong>，防重防并发冲突。`;
     } else {
       ctaTitle.textContent = "立即锁定号码";
       ctaSubtext.innerHTML = `
@@ -529,9 +627,12 @@
         ctaRightValue.textContent = selectedManualNumbers[0] || "请选择";
       } else {
         ctaRightLabel.textContent = "发号方式";
-        ctaRightValue.textContent = randomPreviewNumber ? `随机 ${randomPreviewNumber}` : "系统随机";
+        ctaRightValue.textContent = randomPreviewNumbers[0] ? `随机 ${randomPreviewNumbers[0]}` : "系统随机";
       }
-      randomDesc.innerHTML = `点击下方「立即锁定号码」并完成注册/登录后，系统将从当前剩余号池中为您自动分配 <strong>1 个唯一 6 位幸运号码</strong>，防重防并发冲突。`;
+    }
+
+    if (!randomRollTimer) {
+      renderRandomPanel();
     }
 
     if (selectionMode === "manual") {
@@ -680,24 +781,20 @@
   });
 
   rollPreviewBtn.addEventListener("click", () => {
+    stopRandomRoll();
+    const count = getMaxPickCount();
     randomSlots.classList.add("is-rolling");
     let ticks = 0;
-    const timer = setInterval(() => {
-      const temp = formatNumber6(Math.floor(1 + Math.random() * TOTAL_POOL));
-      randomSlots.innerHTML = temp
-        .split("")
-        .map((d) => `<span>${d}</span>`)
-        .join("");
+    randomRollTimer = setInterval(() => {
+      const tempList = Array.from({ length: count }, () =>
+        formatNumber6(Math.floor(1 + Math.random() * TOTAL_POOL))
+      );
+      renderRandomPanel(tempList);
       ticks += 1;
       if (ticks >= 8) {
-        clearInterval(timer);
-        randomPreviewNumber = generateUniqueAvailableNumber();
-        randomSlots.innerHTML = randomPreviewNumber
-          .split("")
-          .map((d) => `<span>${d}</span>`)
-          .join("");
-        randomSlots.classList.remove("is-rolling");
-        randomDesc.innerHTML = `已为您预摇幸运号 <strong>${randomPreviewNumber}</strong>（最终归属以完成注册/登录时的实时号池校验为准）。`;
+        stopRandomRoll();
+        randomPreviewNumbers = generateUniqueAvailableNumbers(count);
+        renderRandomPanel();
         renderAuthAndCtaState();
       }
     }, 55);
@@ -998,11 +1095,16 @@
     const tier = getCurrentPaidTier();
     const picked = selectionMode === "manual" ? selectedManualNumbers.slice(0, tier.qty) : [];
     const remainAuto = Math.max(0, tier.qty - picked.length);
+    const rolledNums = randomPreviewNumbers.length === tier.qty ? randomPreviewNumbers : [];
     const numDesc =
       selectionMode === "manual"
         ? remainAuto > 0
           ? `${picked.join("、")}（另 ${remainAuto} 个由系统自动补齐）`
           : picked.join("、")
+        : rolledNums.length > 0
+        ? rolledNums.length <= 4
+          ? rolledNums.join("、")
+          : `${rolledNums.slice(0, 3).join("、")} 等 ${rolledNums.length} 个随机号码`
         : `系统随机分配 ${tier.qty} 个唯一号码`;
 
     payConfirmSummary.innerHTML = `
@@ -1030,6 +1132,13 @@
 
     if (selectionMode === "manual") {
       selectedManualNumbers.forEach((n) => {
+        if (issuedNums.length < count && !taken.has(n) && !issuedNums.includes(n)) {
+          issuedNums.push(n);
+          taken.add(n);
+        }
+      });
+    } else if (randomPreviewNumbers.length > 0) {
+      randomPreviewNumbers.forEach((n) => {
         if (issuedNums.length < count && !taken.has(n) && !issuedNums.includes(n)) {
           issuedNums.push(n);
           taken.add(n);
@@ -1072,6 +1181,7 @@
     saveRecords(records);
 
     selectedManualNumbers = [];
+    randomPreviewNumbers = [];
     renderProgress();
     renderManualGrid();
     renderAuthAndCtaState();
@@ -1128,8 +1238,8 @@
       }
     } else {
       finalNumber =
-        randomPreviewNumber && !taken.has(randomPreviewNumber)
-          ? randomPreviewNumber
+        randomPreviewNumbers[0] && !taken.has(randomPreviewNumbers[0])
+          ? randomPreviewNumbers[0]
           : generateUniqueAvailableNumber();
     }
 
@@ -1154,6 +1264,7 @@
     saveRecords(records);
 
     selectedManualNumbers = [];
+    randomPreviewNumbers = [];
     renderProgress();
     renderManualGrid();
     renderAuthAndCtaState();

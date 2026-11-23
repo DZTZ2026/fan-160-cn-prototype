@@ -1184,6 +1184,62 @@ button {
   background: var(--green);
 }
 
+.random-slots.random-slots--multi {
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.random-num-pill {
+  min-width: 104px;
+  padding: 7px 10px;
+  border-radius: 9px;
+  background: var(--black);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.16);
+  transition: background-color 0.14s ease;
+}
+
+.random-slots--multi .random-num-pill-idx {
+  width: auto;
+  height: auto;
+  background: transparent;
+  box-shadow: none;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.56);
+  font-variant-numeric: tabular-nums;
+}
+
+.random-slots--multi .random-num-pill-code {
+  width: auto;
+  height: auto;
+  background: transparent;
+  box-shadow: none;
+  font-size: 15.5px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+
+.random-slots--multi .random-num-pill.is-placeholder .random-num-pill-code {
+  color: rgba(255, 255, 255, 0.72);
+  letter-spacing: 1.5px;
+}
+
+.random-slots.random-slots--multi.is-rolling .random-num-pill {
+  background: var(--green);
+}
+
+.random-slots.random-slots--multi.is-rolling span {
+  background: transparent;
+}
+
 .random-desc {
   margin: 0 0 12px;
   font-size: 12px;
