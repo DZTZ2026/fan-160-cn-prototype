@@ -1446,7 +1446,7 @@
       }
     });
     ticketsModalStats.innerHTML = `
-      <span>号码总数：<strong>${total}</strong></span>
+      <span>总数：<strong>${total}</strong></span>
       <span>待开奖：<strong>${pending}</strong></span>
       <span>未中奖：<strong>${lost}</strong></span>
       <span class="tickets-stat-won">中奖：<strong>${won}</strong></span>
