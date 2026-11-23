@@ -672,6 +672,31 @@
         <button class="modal-x-btn" data-close-modal="ticketsModal" type="button" aria-label="关闭查询窗口">×</button>
       </div>
 
+      <!-- 筛选区：开奖状态 + 时间范围 -->
+      <div class="tickets-filter-bar" id="ticketsFilterBar" hidden>
+        <div class="tickets-filter-group">
+          <span class="tickets-filter-label">开奖状态</span>
+          <div class="tickets-filter-chips" id="ticketsStatusFilters" role="group" aria-label="按开奖状态筛选">
+            <button type="button" class="tickets-chip is-active" data-status-filter="all">全部</button>
+            <button type="button" class="tickets-chip" data-status-filter="待开奖">待开奖</button>
+            <button type="button" class="tickets-chip" data-status-filter="未中奖">未中奖</button>
+            <button type="button" class="tickets-chip" data-status-filter="中奖">中奖</button>
+          </div>
+        </div>
+        <div class="tickets-filter-group">
+          <span class="tickets-filter-label">时间范围</span>
+          <div class="tickets-filter-chips" id="ticketsTimeFilters" role="group" aria-label="按时间范围筛选">
+            <button type="button" class="tickets-chip is-active" data-time-filter="all">全部</button>
+            <button type="button" class="tickets-chip" data-time-filter="today">今天</button>
+            <button type="button" class="tickets-chip" data-time-filter="yesterday">昨天</button>
+            <button type="button" class="tickets-chip" data-time-filter="7d">近7天</button>
+            <button type="button" class="tickets-chip" data-time-filter="30d">近30天</button>
+            <button type="button" class="tickets-chip" data-time-filter="2m">近2月</button>
+            <button type="button" class="tickets-chip" data-time-filter="3m">近3月</button>
+          </div>
+        </div>
+      </div>
+
       <div id="lookupResultArea"></div>
     </div>
   </div>

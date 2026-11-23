@@ -36,7 +36,7 @@
       drawStatus: "待开奖",
       kolId: "KOL_Tavares44",
       isNewRegistration: false,
-      createdAt: "2026-11-21 13:45:12"
+      createdAt: formatDaysAgoTimestamp(0, "13:45:12")
     }
   ];
 
@@ -139,6 +139,8 @@
   let pendingLockAfterAuth = false;
   let pendingPayIsNewReg = false;
   let currentUser = loadCurrentUser();
+  let ticketsStatusFilter = "all"; // "all" | "待开奖" | "未中奖" | "中奖"
+  let ticketsTimeFilter = "all"; // "all" | "today" | "yesterday" | "7d" | "30d" | "2m" | "3m"
   let toastTimer = null;
 
   // DOM 引用
@@ -231,6 +233,9 @@
 
   const lookupResultArea = document.getElementById("lookupResultArea");
   const ticketsModalStats = document.getElementById("ticketsModalStats");
+  const ticketsFilterBar = document.getElementById("ticketsFilterBar");
+  const ticketsStatusFilters = document.getElementById("ticketsStatusFilters");
+  const ticketsTimeFilters = document.getElementById("ticketsTimeFilters");
 
   const openAttributionInfoBtn = document.getElementById("openAttributionInfoBtn");
   const openSelfExclusionBtn = document.getElementById("openSelfExclusionBtn");
@@ -1348,6 +1353,13 @@
   // ===========================
   // 我的抽奖号码弹窗（展示当前登录账号号码及开奖中奖状态）
   // ===========================
+  function formatDaysAgoTimestamp(daysAgo, hms = "12:00:00") {
+    const d = new Date();
+    d.setDate(d.getDate() - daysAgo);
+    const pad = (v) => String(v).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${hms}`;
+  }
+
   function buildExtraShowcaseTickets(user) {
     return [
       {
@@ -1364,7 +1376,7 @@
         status: "有效",
         drawStatus: "中奖",
         winningNumber: "668427",
-        createdAt: "2026-11-20 19:22:08"
+        createdAt: formatDaysAgoTimestamp(1, "19:22:08")
       },
       {
         recordId: "SHOWCASE-LOST-02",
@@ -1380,7 +1392,7 @@
         status: "有效",
         drawStatus: "未中奖",
         winningNumber: "088219",
-        createdAt: "2026-10-28 16:06:20"
+        createdAt: formatDaysAgoTimestamp(18, "16:06:20")
       },
       {
         recordId: "SHOWCASE-LOST-03",
@@ -1396,9 +1408,97 @@
         status: "有效",
         drawStatus: "未中奖",
         winningNumber: "074105",
-        createdAt: "2026-09-30 20:15:40"
+        createdAt: formatDaysAgoTimestamp(48, "20:15:40")
       }
     ];
+  }
+
+  function parseRecordDate(str) {
+    if (!str) return null;
+    const normalized = String(str).trim().replace(" ", "T");
+    const d = new Date(normalized);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  function matchesTicketsTime(rec, range) {
+    if (!range || range === "all") return true;
+    const recDate = parseRecordDate(rec.createdAt);
+    if (!recDate) return false;
+
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+
+    if (range === "today") {
+      return recDate >= todayStart;
+    }
+    if (range === "yesterday") {
+      const yestStart = new Date(todayStart);
+      yestStart.setDate(yestStart.getDate() - 1);
+      return recDate >= yestStart && recDate < todayStart;
+    }
+    if (range === "7d") {
+      const start = new Date(todayStart);
+      start.setDate(start.getDate() - 6);
+      return recDate >= start;
+    }
+    if (range === "30d") {
+      const start = new Date(todayStart);
+      start.setDate(start.getDate() - 29);
+      return recDate >= start;
+    }
+    if (range === "2m") {
+      const start = new Date(todayStart);
+      start.setMonth(start.getMonth() - 2);
+      return recDate >= start;
+    }
+    if (range === "3m") {
+      const start = new Date(todayStart);
+      start.setMonth(start.getMonth() - 3);
+      return recDate >= start;
+    }
+    return true;
+  }
+
+  function matchesTicketsStatus(rec, statusFilter) {
+    if (!statusFilter || statusFilter === "all") return true;
+    const s = rec.drawStatus || "待开奖";
+    if (statusFilter === "中奖") return s === "中奖" || s === "已中奖";
+    if (statusFilter === "未中奖") return s === "未中奖";
+    if (statusFilter === "待开奖") return s !== "中奖" && s !== "已中奖" && s !== "未中奖";
+    return true;
+  }
+
+  function syncTicketsFilterButtons() {
+    if (ticketsStatusFilters) {
+      ticketsStatusFilters.querySelectorAll("[data-status-filter]").forEach((btn) => {
+        btn.classList.toggle("is-active", btn.dataset.statusFilter === ticketsStatusFilter);
+      });
+    }
+    if (ticketsTimeFilters) {
+      ticketsTimeFilters.querySelectorAll("[data-time-filter]").forEach((btn) => {
+        btn.classList.toggle("is-active", btn.dataset.timeFilter === ticketsTimeFilter);
+      });
+    }
+  }
+
+  if (ticketsStatusFilters) {
+    ticketsStatusFilters.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-status-filter]");
+      if (!btn) return;
+      ticketsStatusFilter = btn.dataset.statusFilter;
+      syncTicketsFilterButtons();
+      renderMyTickets();
+    });
+  }
+
+  if (ticketsTimeFilters) {
+    ticketsTimeFilters.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-time-filter]");
+      if (!btn) return;
+      ticketsTimeFilter = btn.dataset.timeFilter;
+      syncTicketsFilterButtons();
+      renderMyTickets();
+    });
   }
 
   function getDisplayTicketsForUser(user) {
@@ -1455,6 +1555,7 @@
 
   function renderMyTickets() {
     if (!currentUser) {
+      if (ticketsFilterBar) ticketsFilterBar.hidden = true;
       renderTicketsStats([]);
       lookupResultArea.innerHTML = `
         <div class="helper-card">
@@ -1476,10 +1577,14 @@
       return;
     }
 
-    const matched = getDisplayTicketsForUser(currentUser);
-    renderTicketsStats(matched);
+    if (ticketsFilterBar) ticketsFilterBar.hidden = false;
+    syncTicketsFilterButtons();
 
-    if (matched.length === 0) {
+    const allTickets = getDisplayTicketsForUser(currentUser);
+    const timeFiltered = allTickets.filter((rec) => matchesTicketsTime(rec, ticketsTimeFilter));
+    renderTicketsStats(timeFiltered);
+
+    if (allTickets.length === 0) {
       lookupResultArea.innerHTML = `
         <div class="helper-card">
           <span class="helper-card-icon" aria-hidden="true">🎟️</span>
@@ -1495,6 +1600,27 @@
         goPickBtn.addEventListener("click", () => {
           closeModal("ticketsModal");
           document.getElementById("selectionArea").scrollIntoView({ behavior: "smooth" });
+        });
+      }
+      return;
+    }
+
+    const matched = timeFiltered.filter((rec) => matchesTicketsStatus(rec, ticketsStatusFilter));
+
+    if (matched.length === 0) {
+      lookupResultArea.innerHTML = `
+        <div class="tickets-empty-filter">
+          <p>当前筛选条件下暂无符合的抽奖号码</p>
+          <button type="button" class="tickets-reset-btn" id="resetTicketsFilterBtn">重置筛选</button>
+        </div>
+      `;
+      const resetBtn = document.getElementById("resetTicketsFilterBtn");
+      if (resetBtn) {
+        resetBtn.addEventListener("click", () => {
+          ticketsStatusFilter = "all";
+          ticketsTimeFilter = "all";
+          syncTicketsFilterButtons();
+          renderMyTickets();
         });
       }
       return;
