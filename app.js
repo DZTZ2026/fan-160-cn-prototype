@@ -489,8 +489,9 @@
       avatarPopover.hidden = true;
     }
 
-    if (myRecords.length > 0) {
-      myTicketsBadge.textContent = String(myRecords.length);
+    const displayTickets = currentUser ? getDisplayTicketsForUser(currentUser) : [];
+    if (displayTickets.length > 0) {
+      myTicketsBadge.textContent = String(displayTickets.length);
       myTicketsBadge.hidden = false;
     } else {
       myTicketsBadge.hidden = true;
@@ -1212,12 +1213,79 @@
   // ===========================
   // 我的抽奖号码弹窗（展示当前登录账号号码及开奖中奖状态）
   // ===========================
+  function buildExtraShowcaseTickets(user) {
+    return [
+      {
+        recordId: "SHOWCASE-WON-01",
+        round: "第 202601 期",
+        accountId: user.accountId,
+        phone: user.phone,
+        nickname: user.nickname || user.phone,
+        number: "668427",
+        mode: "系统随机分配",
+        payInfo: "免费领号",
+        status: "有效",
+        drawStatus: "中奖",
+        winningNumber: "668427",
+        createdAt: "2026-11-20 19:22:08"
+      },
+      {
+        recordId: "SHOWCASE-LOST-02",
+        round: "第 202512 期",
+        accountId: user.accountId,
+        phone: user.phone,
+        nickname: user.nickname || user.phone,
+        number: "041826",
+        mode: "手动选择号码",
+        payInfo: "付费购号 $1 / 1个",
+        status: "有效",
+        drawStatus: "未中奖",
+        winningNumber: "088219",
+        createdAt: "2026-10-28 16:06:20"
+      },
+      {
+        recordId: "SHOWCASE-LOST-03",
+        round: "第 202511 期",
+        accountId: user.accountId,
+        phone: user.phone,
+        nickname: user.nickname || user.phone,
+        number: "039512",
+        mode: "系统随机分配",
+        payInfo: "免费领号",
+        status: "有效",
+        drawStatus: "未中奖",
+        winningNumber: "074105",
+        createdAt: "2026-09-30 20:15:40"
+      }
+    ];
+  }
+
+  function getDisplayTicketsForUser(user) {
+    if (!user) return [];
+    const records = loadRecords().filter(
+      (r) => r.accountId === user.accountId || r.phone === user.phone
+    );
+    const existingNums = new Set(records.map((r) => r.number));
+    const extras = buildExtraShowcaseTickets(user).filter((ex) => !existingNums.has(ex.number));
+    return [...records, ...extras];
+  }
+
   function getDrawStatusBadge(rec) {
-    const label = rec.drawStatus || "待开奖";
-    let cls = "order-status-pill--pending";
-    if (label === "已中奖") cls = "order-status-pill--won";
-    else if (label === "未中奖") cls = "order-status-pill--lost";
-    return `<span class="order-status-pill ${cls}">${label}</span>`;
+    const raw = rec.drawStatus || "待开奖";
+    if (raw === "中奖" || raw === "已中奖") {
+      return `
+        <span class="order-status-pill order-status-pill--won">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="#fffbeb" aria-hidden="true">
+            <path d="M19 4h-2V3a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v1H5a1 1 0 0 0-1 1v2a5 5 0 0 0 4.08 4.91A5.01 5.01 0 0 0 11 14.9V17H8a1 1 0 0 0-1 1v2h10v-2a1 1 0 0 0-1-1h-3v-2.1a5.01 5.01 0 0 0 2.92-2.99A5 5 0 0 0 20 7V5a1 1 0 0 0-1-1ZM6 7V6h1v3.83A3 3 0 0 1 6 7Zm12 0a3 3 0 0 1-1 2.83V6h1Z"/>
+          </svg>
+          <span>中奖</span>
+        </span>
+      `;
+    }
+    if (raw === "未中奖") {
+      return `<span class="order-status-pill order-status-pill--lost">未中奖</span>`;
+    }
+    return `<span class="order-status-pill order-status-pill--pending">${raw}</span>`;
   }
 
   function renderMyTickets() {
@@ -1242,10 +1310,7 @@
       return;
     }
 
-    const records = loadRecords();
-    const matched = records.filter(
-      (r) => r.accountId === currentUser.accountId || r.phone === currentUser.phone
-    );
+    const matched = getDisplayTicketsForUser(currentUser);
 
     if (matched.length === 0) {
       lookupResultArea.innerHTML = `
@@ -1269,9 +1334,12 @@
     }
 
     lookupResultArea.innerHTML = matched
-      .map(
-        (rec) => `
-          <div class="order-record-card">
+      .map((rec) => {
+        const isWon = rec.drawStatus === "中奖" || rec.drawStatus === "已中奖";
+        const isLost = rec.drawStatus === "未中奖";
+        const drawNum = rec.winningNumber || "088219";
+        return `
+          <div class="order-record-card ${isWon ? "order-record-card--won" : ""}">
             <div class="order-record-head">
               <div class="order-record-title-wrap">
                 <span class="order-record-title">号码：${rec.number}</span>
@@ -1287,8 +1355,13 @@
             </div>
             <div class="order-record-meta">
               <div class="order-meta-line">
-                <span>活动期次：本田 Fan 160 2025（第 202601 期）</span>
+                <span>活动期次：本田 Fan 160 2025（${rec.round || "第 202601 期"}）</span>
               </div>
+              ${
+                isLost
+                  ? `<div class="order-meta-line"><span>开奖号码：</span><span class="draw-number-pill">${drawNum}</span></div>`
+                  : ""
+              }
               <div class="order-meta-line">
                 <span>账号：<span class="order-meta-value">${rec.phone}</span></span>
                 <button type="button" class="copy-inline-btn copy-inline-btn--sm" data-copy-val="${rec.phone}" data-copy-label="账号" aria-label="复制账号 ${rec.phone}">
@@ -1317,8 +1390,8 @@
               </div>
             </div>
           </div>
-        `
-      )
+        `;
+      })
       .join("");
 
     lookupResultArea.querySelectorAll("[data-copy-val]").forEach((btn) => {
