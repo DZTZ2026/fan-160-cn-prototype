@@ -1347,6 +1347,7 @@
       {
         recordId: "SHOWCASE-WON-01",
         round: "第 202601 期",
+        firstPrize: "2025款 本田 Fan 160 摩托车",
         accountId: user.accountId,
         phone: user.phone,
         nickname: user.nickname || user.phone,
@@ -1361,6 +1362,7 @@
       {
         recordId: "SHOWCASE-LOST-02",
         round: "第 202512 期",
+        firstPrize: "2025款 本田 Fan 160 摩托车",
         accountId: user.accountId,
         phone: user.phone,
         nickname: user.nickname || user.phone,
@@ -1375,6 +1377,7 @@
       {
         recordId: "SHOWCASE-LOST-03",
         round: "第 202511 期",
+        firstPrize: "2025款 本田 Fan 160 摩托车",
         accountId: user.accountId,
         phone: user.phone,
         nickname: user.nickname || user.phone,
@@ -1485,6 +1488,9 @@
             <div class="order-record-meta">
               <div class="order-meta-line">
                 <span>活动期次：本田 Fan 160 2025（${rec.round || "第 202601 期"}）</span>
+              </div>
+              <div class="order-meta-line">
+                <span>活动奖品：<span class="order-meta-value">${rec.firstPrize || "2025款 本田 Fan 160 摩托车"}</span></span>
               </div>
               ${
                 isLost
