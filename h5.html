@@ -672,6 +672,68 @@
         <button class="modal-x-btn" data-close-modal="ticketsModal" type="button" aria-label="关闭查询窗口">×</button>
       </div>
 
+      <!-- 顶部防诈骗警告提示卡（按截图 1:1 制作） -->
+      <div class="fraud-warning-card" role="note" aria-label="警告：谨防诈骗">
+        <!-- 右侧半透明伪装人物水印 -->
+        <svg class="fraud-watermark" viewBox="0 0 120 140" aria-hidden="true">
+          <g fill="#7a491e">
+            <path d="M36 44 L45 14 L78 21 L84 44 Z" />
+            <rect x="20" y="42" width="84" height="9" rx="4.5" transform="rotate(-11 62 46)" />
+            <rect x="34" y="61" width="21" height="14" rx="3" transform="rotate(-11 44 68)" />
+            <rect x="65" y="55" width="21" height="14" rx="3" transform="rotate(-11 75 62)" />
+            <rect x="52" y="62" width="16" height="4" transform="rotate(-11 60 64)" />
+            <path d="M18 136 L34 88 L60 95 L86 80 L106 122 L106 136 Z" />
+          </g>
+        </svg>
+
+        <div class="fraud-warning-head">
+          <span class="fraud-shield-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3l7 3v5c0 4.6-3 8.5-7 10-4-1.5-7-5.4-7-10V6l7-3Z" />
+              <line x1="12" y1="8.5" x2="12" y2="12.5" />
+              <circle cx="12" cy="15.8" r="0.7" fill="currentColor" />
+            </svg>
+          </span>
+          <strong class="fraud-warning-title">警告：谨防诈骗</strong>
+        </div>
+
+        <ul class="fraud-warning-list">
+          <li class="fraud-item fraud-item--blue">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="2.5" y="6.5" width="13.5" height="11" rx="2" />
+              <path d="M16 10.2l5.5-3v9.6l-5.5-3" />
+            </svg>
+            <span>我们不进行视频通话。</span>
+          </li>
+          <li class="fraud-item fraud-item--purple">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="3" y="4.5" width="18" height="12" rx="2" />
+              <line x1="8" y1="20" x2="16" y2="20" />
+              <line x1="12" y1="16.5" x2="12" y2="20" />
+            </svg>
+            <span>我们不会要求访问您的屏幕。</span>
+          </li>
+          <li class="fraud-item fraud-item--brown">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="2.5" y="5.5" width="15" height="10" rx="1.8" />
+              <circle cx="10" cy="10.5" r="2.2" />
+              <circle cx="17.5" cy="16.2" r="3.6" fill="#f6efe6" />
+              <path d="M17.5 14.4v3.6" />
+            </svg>
+            <span>我们不收取任何奖品发放费用。</span>
+          </li>
+        </ul>
+
+        <div class="fraud-warning-foot">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9.5" />
+            <line x1="12" y1="7.8" x2="12" y2="12.5" />
+            <circle cx="12" cy="16" r="0.7" fill="currentColor" />
+          </svg>
+          <span>请对这些请求保持警惕。请仅使用网站的官方渠道。</span>
+        </div>
+      </div>
+
       <!-- 紧凑筛选条：开奖状态下拉 + 时间范围下拉 + 搜索/重置 -->
       <div class="tickets-filter-bar" id="ticketsFilterBar" hidden>
         <select class="tickets-select" id="ticketsStatusSelect" aria-label="开奖状态">
