@@ -138,6 +138,9 @@
   let selectedCurrency = CURRENCIES[0]; // 默认 USD(美元)
   let pendingLockAfterAuth = false;
   let pendingPayIsNewReg = false;
+  let pendingCustomPayOrder = null;
+  let currentDetailRecord = null;
+  let detailBuyQty = 2;
   let currentUser = loadCurrentUser();
   let ticketsStatusFilter = "all"; // "all" | "待开奖" | "未中奖" | "中奖"
   let ticketsTimeFilter = "all"; // "all" | "today" | "yesterday" | "7d" | "30d" | "2m" | "3m"
@@ -1098,26 +1101,29 @@
   // ===========================
   // 号码锁定 / 付费购买与结果展示（PRD R02 / R03 / R06）
   // ===========================
-  function openPayConfirmModal(user, { isNewRegistration = false } = {}) {
+  function openPayConfirmModal(user, { isNewRegistration = false, customOrder = null } = {}) {
     pendingPayIsNewReg = isNewRegistration;
-    const tier = getCurrentPaidTier();
-    const picked = selectionMode === "manual" ? selectedManualNumbers.slice(0, tier.qty) : [];
+    pendingCustomPayOrder = customOrder;
+    const tier = customOrder ? { qty: customOrder.qty, price: customOrder.price } : getCurrentPaidTier();
+    const isDetailOrder = Boolean(customOrder);
+    const picked = !isDetailOrder && selectionMode === "manual" ? selectedManualNumbers.slice(0, tier.qty) : [];
     const remainAuto = Math.max(0, tier.qty - picked.length);
-    const rolledNums = randomPreviewNumbers.length === tier.qty ? randomPreviewNumbers : [];
-    const numDesc =
-      selectionMode === "manual"
-        ? remainAuto > 0
-          ? `${picked.join("、")}（另 ${remainAuto} 个由系统自动补齐）`
-          : picked.join("、")
-        : rolledNums.length > 0
-        ? rolledNums.length <= 4
-          ? rolledNums.join("、")
-          : `${rolledNums.slice(0, 3).join("、")} 等 ${rolledNums.length} 个随机号码`
-        : `系统随机分配 ${tier.qty} 个唯一号码`;
+    const rolledNums = !isDetailOrder && randomPreviewNumbers.length === tier.qty ? randomPreviewNumbers : [];
+    const numDesc = isDetailOrder
+      ? `系统随机分配 ${tier.qty} 个唯一号码`
+      : selectionMode === "manual"
+      ? remainAuto > 0
+        ? `${picked.join("、")}（另 ${remainAuto} 个由系统自动补齐）`
+        : picked.join("、")
+      : rolledNums.length > 0
+      ? rolledNums.length <= 4
+        ? rolledNums.join("、")
+        : `${rolledNums.slice(0, 3).join("、")} 等 ${rolledNums.length} 个随机号码`
+      : `系统随机分配 ${tier.qty} 个唯一号码`;
 
     payConfirmSummary.innerHTML = `
       <div class="pending-lock-row"><span>购买档位</span><strong>${tier.qty} 个抽奖号码</strong></div>
-      <div class="pending-lock-row"><span>选号方式</span><span>${selectionMode === "manual" ? "手动选择号码" : "系统随机分配"}</span></div>
+      <div class="pending-lock-row"><span>选号方式</span><span>${isDetailOrder ? "详情页快捷购买（系统随机）" : selectionMode === "manual" ? "手动选择号码" : "系统随机分配"}</span></div>
       <div class="pending-lock-row"><span>待锁定号码</span><strong>${numDesc}</strong></div>
       <div class="pending-lock-row"><span>购买账号</span><span>${user.phone}（${user.accountId}）</span></div>
       <div class="pending-lock-row"><span>应付金额</span><strong style="color:#15803d;font-size:16px;">$${Number(tier.price).toFixed(2)}</strong></div>
@@ -1133,19 +1139,21 @@
   });
 
   function issuePaidTicketsForUser(user, { isNewRegistration = false } = {}) {
-    const tier = getCurrentPaidTier();
+    const customOrder = pendingCustomPayOrder;
+    pendingCustomPayOrder = null;
+    const tier = customOrder ? { qty: customOrder.qty, price: customOrder.price } : getCurrentPaidTier();
     const count = Math.max(1, Number(tier.qty) || 1);
     const taken = getAllTakenNumbers();
     const issuedNums = [];
 
-    if (selectionMode === "manual") {
+    if (!customOrder && selectionMode === "manual") {
       selectedManualNumbers.forEach((n) => {
         if (issuedNums.length < count && !taken.has(n) && !issuedNums.includes(n)) {
           issuedNums.push(n);
           taken.add(n);
         }
       });
-    } else if (randomPreviewNumbers.length > 0) {
+    } else if (!customOrder && randomPreviewNumbers.length > 0) {
       randomPreviewNumbers.forEach((n) => {
         if (issuedNums.length < count && !taken.has(n) && !issuedNums.includes(n)) {
           issuedNums.push(n);
@@ -1165,11 +1173,16 @@
     const records = loadRecords();
     const nowTime = formatTimestamp();
     const payChannel = (document.querySelector('input[name="h5PayChannel"]:checked') || {}).value || "平台余额支付";
-    const modeLabel = selectionMode === "manual" ? "手动选择号码" : "系统随机分配";
+    const modeLabel = customOrder
+      ? "系统随机分配"
+      : selectionMode === "manual"
+      ? "手动选择号码"
+      : "系统随机分配";
+    const targetRound = (customOrder && customOrder.round) || "第 202601 期";
 
     const createdList = issuedNums.map((num, idx) => ({
       recordId: `REC-${Date.now()}-${idx + 1}`,
-      round: "第 202601 期",
+      round: targetRound,
       accountId: user.accountId,
       phone: user.phone,
       nickname: user.nickname,
@@ -1195,6 +1208,12 @@
     renderProgress();
     renderManualGrid();
     renderAuthAndCtaState();
+    if (!document.getElementById("ticketsModal").hidden) {
+      renderMyTickets();
+    }
+    if (customOrder && customOrder.fromDetailPage && currentDetailRecord) {
+      renderRoundDetailPage();
+    }
     showLockSuccessMulti(createdList, tier);
   }
 
@@ -1636,6 +1655,10 @@
         const drawNum = rec.winningNumber || "088219";
         const cleanPayInfo = String(rec.payInfo || "免费领号").replace(/（[^）]*支付[^）]*）/g, "");
         const payMethodText = resolvePayMethod(rec);
+        const roundName = rec.round || "第 202601 期";
+        const soldList = getSoldNumbersForRound(roundName);
+        const previewSold = soldList.slice(0, 8);
+        const overflowCount = Math.max(0, soldList.length - previewSold.length);
         return `
           <div class="order-record-card ${isWon ? "order-record-card--won" : ""}">
             <div class="order-record-head">
@@ -1653,7 +1676,7 @@
             </div>
             <div class="order-record-meta">
               <div class="order-meta-line">
-                <span>活动期次：本田 Fan 160 2025（${rec.round || "第 202601 期"}）</span>
+                <span>活动期次：本田 Fan 160 2025（${roundName}）</span>
               </div>
               <div class="order-meta-line">
                 <span>活动奖品：<span class="order-meta-value">${rec.firstPrize || "2025款 本田 Fan 160 摩托车"}</span></span>
@@ -1673,6 +1696,23 @@
                 <span>获得时间：${rec.createdAt}</span>
               </div>
             </div>
+            <div class="card-sold-box">
+              <div class="card-sold-head">
+                <span class="card-sold-label">已售号码（最近）</span>
+                <button type="button" class="card-detail-btn" data-open-round-detail="${rec.recordId}">
+                  <span>详情</span>
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="9 6 15 12 9 18" />
+                  </svg>
+                </button>
+              </div>
+              <div class="card-sold-pills">
+                ${previewSold
+                  .map((num) => `<span class="sold-num-pill ${num === rec.number ? "is-mine" : ""}">${num}</span>`)
+                  .join("")}
+                ${overflowCount > 0 ? `<span class="sold-num-more">+${overflowCount}</span>` : ""}
+              </div>
+            </div>
           </div>
         `;
       })
@@ -1682,6 +1722,276 @@
       btn.addEventListener("click", () =>
         copyTextToClipboard(btn.dataset.copyVal, btn, btn.dataset.copyLabel || "内容")
       );
+    });
+
+    lookupResultArea.querySelectorAll("[data-open-round-detail]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = matched.find((r) => r.recordId === btn.dataset.openRoundDetail);
+        if (target) openRoundDetailPage(target);
+      });
+    });
+  }
+
+  // ===========================
+  // 本期已售号码生成 & 详情页（全屏 H5 页面）
+  // ===========================
+  const ROUND_BASE_SOLD = {
+    "第 202601 期": ["016521", "036002", "036114", "040913", "060867", "062499", "086877", "100258"],
+    "第 202512 期": ["014702", "028915", "041826", "053410", "067821", "074932", "088219", "095104"],
+    "第 202511 期": ["009841", "021536", "039512", "048275", "061904", "074105", "083620", "091748"]
+  };
+
+  function getSoldNumbersForRound(roundName) {
+    const round = roundName || "第 202601 期";
+    const set = new Set();
+    const list = [];
+
+    // 1. 先放入本期真实记录号码（最新在前，便于卡片预览实时看到刚购买的号码）
+    loadRecords().forEach((r) => {
+      const rRound = r.round || "第 202601 期";
+      if (rRound === round && r.status === "有效" && r.number && !set.has(r.number)) {
+        set.add(r.number);
+        list.push(r.number);
+      }
+    });
+
+    // 2. 放入当前登录用户本期的演示号码
+    if (currentUser) {
+      buildExtraShowcaseTickets(currentUser).forEach((ex) => {
+        if ((ex.round || "第 202601 期") === round && ex.number && !set.has(ex.number)) {
+          set.add(ex.number);
+          list.push(ex.number);
+        }
+      });
+    }
+
+    // 3. 放入参考风格基础最近已售号码
+    const baseList = ROUND_BASE_SOLD[round] || ROUND_BASE_SOLD["第 202601 期"];
+    baseList.forEach((n) => {
+      if (!set.has(n)) {
+        set.add(n);
+        list.push(n);
+      }
+    });
+
+    // 4. 确定性补齐至 100 个本期已售号码（每次打开顺序稳定）
+    let seed = 0;
+    for (let i = 0; i < round.length; i += 1) {
+      seed = (seed * 31 + round.charCodeAt(i)) % 9973;
+    }
+    let cur = (seed * 137 + 14713) % 99991;
+    while (list.length < 100) {
+      cur = (cur * 1103 + 7919) % 99991;
+      const fmt = formatNumber6((cur % TOTAL_POOL) + 1);
+      if (!set.has(fmt)) {
+        set.add(fmt);
+        list.push(fmt);
+      }
+    }
+
+    return list;
+  }
+
+  const closeRoundDetailBtn = document.getElementById("closeRoundDetailBtn");
+  const detailSupportBtn = document.getElementById("detailSupportBtn");
+  const detailHeroEmoji = document.getElementById("detailHeroEmoji");
+  const detailHeroTitle = document.getElementById("detailHeroTitle");
+  const detailHeroSub = document.getElementById("detailHeroSub");
+  const detailHeroTime = document.getElementById("detailHeroTime");
+  const detailHeroRef = document.getElementById("detailHeroRef");
+  const detailSoldTotalBadge = document.getElementById("detailSoldTotalBadge");
+  const detailBuyStatusTag = document.getElementById("detailBuyStatusTag");
+  const detailBuyPrize = document.getElementById("detailBuyPrize");
+  const detailQtyMinus = document.getElementById("detailQtyMinus");
+  const detailQtyPlus = document.getElementById("detailQtyPlus");
+  const detailQtyInput = document.getElementById("detailQtyInput");
+  const detailBuyNowBtn = document.getElementById("detailBuyNowBtn");
+  const detailBuyBtnText = document.getElementById("detailBuyBtnText");
+  const detailDrawStatusCard = document.getElementById("detailDrawStatusCard");
+  const detailInfoList = document.getElementById("detailInfoList");
+  const detailSoldSearchInput = document.getElementById("detailSoldSearchInput");
+  const detailAllCountBadge = document.getElementById("detailAllCountBadge");
+  const detailAllSoldGrid = document.getElementById("detailAllSoldGrid");
+
+  function getDetailUnitPrice(qty) {
+    const tiers = loadPaidTiers();
+    const exact = tiers.find((t) => Number(t.qty) === Number(qty));
+    if (exact) return Number(exact.price);
+    const base = tiers[0] && Number(tiers[0].qty) > 0 ? Number(tiers[0].price) / Number(tiers[0].qty) : 1;
+    return Number((qty * base).toFixed(2));
+  }
+
+  function updateDetailBuyButton() {
+    detailBuyQty = Math.max(1, Math.min(200, Number(detailBuyQty) || 1));
+    if (detailQtyInput) detailQtyInput.value = String(detailBuyQty);
+    const totalPrice = getDetailUnitPrice(detailBuyQty);
+    if (detailBuyBtnText) {
+      detailBuyBtnText.textContent = `立即购买（$${totalPrice.toFixed(2)}）`;
+    }
+  }
+
+  function renderDetailSoldGrid() {
+    if (!currentDetailRecord || !detailAllSoldGrid) return;
+    const roundName = currentDetailRecord.round || "第 202601 期";
+    const allSold = getSoldNumbersForRound(roundName);
+    const kw = (detailSoldSearchInput ? detailSoldSearchInput.value : "").trim();
+    const filtered = kw ? allSold.filter((n) => n.includes(kw)) : allSold;
+
+    const myNums = new Set(
+      currentUser
+        ? getDisplayTicketsForUser(currentUser)
+            .filter((r) => (r.round || "第 202601 期") === roundName)
+            .map((r) => r.number)
+        : [currentDetailRecord.number]
+    );
+
+    if (detailSoldTotalBadge) detailSoldTotalBadge.textContent = String(allSold.length);
+    if (detailAllCountBadge) {
+      detailAllCountBadge.textContent = kw ? `匹配 ${filtered.length} / ${allSold.length} 个` : `共 ${allSold.length} 个`;
+    }
+
+    if (filtered.length === 0) {
+      detailAllSoldGrid.innerHTML = `<div class="detail-grid-empty">未在本期已售号码中找到「${kw}」</div>`;
+      return;
+    }
+
+    detailAllSoldGrid.innerHTML = filtered
+      .map(
+        (num) =>
+          `<span class="detail-grid-pill ${myNums.has(num) ? "is-mine" : ""}" title="${
+            myNums.has(num) ? "我的号码" : "已售号码"
+          }">${num}</span>`
+      )
+      .join("");
+  }
+
+  function renderRoundDetailPage() {
+    if (!currentDetailRecord) return;
+    const rec = currentDetailRecord;
+    const roundName = rec.round || "第 202601 期";
+    const prizeText = rec.firstPrize || "2025款 本田 Fan 160 摩托车";
+    const isWon = rec.drawStatus === "中奖" || rec.drawStatus === "已中奖";
+    const isLost = rec.drawStatus === "未中奖";
+    const drawNum = rec.winningNumber || "088219";
+    const payMethodText = rec.payMethod || (String(rec.payInfo || "").includes("PIX") ? "PIX 快捷支付" : String(rec.payInfo || "").includes("付费") ? "平台余额支付" : "免费");
+    const allSold = getSoldNumbersForRound(roundName);
+
+    if (detailHeroEmoji) detailHeroEmoji.textContent = isWon ? "🏆" : isLost ? "📋" : "🎉";
+    if (detailHeroTitle) detailHeroTitle.textContent = `本田 Fan 160 2025（${roundName}）`;
+    if (detailHeroSub) {
+      detailHeroSub.textContent = isWon
+        ? `恭喜中奖！我的号码 ${rec.number}`
+        : isLost
+        ? `本期已开奖 · 开奖号码 ${drawNum}`
+        : `活动进行中 · 祝您好运！`;
+    }
+    if (detailHeroTime) detailHeroTime.textContent = rec.createdAt || "--";
+    if (detailHeroRef) detailHeroRef.textContent = rec.recordId || "REC-202601";
+    if (detailBuyStatusTag) detailBuyStatusTag.textContent = isLost || isWon ? "下期火热开启 · 立即抢购" : "本期火热销售中";
+    if (detailBuyPrize) detailBuyPrize.textContent = `一等奖：${prizeText}`;
+
+    if (detailDrawStatusCard) {
+      if (isWon) {
+        detailDrawStatusCard.className = "detail-draw-card detail-draw-card--won";
+        detailDrawStatusCard.innerHTML = `
+          <span class="detail-draw-icon" aria-hidden="true">🏆</span>
+          <div class="detail-draw-content">
+            <h4>恭喜中奖！号码 ${rec.number} 已中奖</h4>
+            <p>您已中得本期活动奖项（第一名奖品：${prizeText}），官方客服将通过平台实名渠道联系您核验领奖。</p>
+          </div>
+        `;
+      } else if (isLost) {
+        detailDrawStatusCard.className = "detail-draw-card detail-draw-card--lost";
+        detailDrawStatusCard.innerHTML = `
+          <span class="detail-draw-icon" aria-hidden="true">😔</span>
+          <div class="detail-draw-content">
+            <h4>本期暂未中奖（开奖号码：${drawNum}）</h4>
+            <p>您的号码 ${rec.number} 本期未中奖，您可以直接在上方购买更多号码参与最新期次，大幅提升中奖概率！</p>
+          </div>
+        `;
+      } else {
+        detailDrawStatusCard.className = "detail-draw-card";
+        detailDrawStatusCard.innerHTML = `
+          <span class="detail-draw-icon" aria-hidden="true">⏳</span>
+          <div class="detail-draw-content">
+            <h4>本期火热进行中 · 满额即锁池开奖</h4>
+            <p>您的专属号码 <strong>${rec.number}</strong> 已生效锁定。可继续通过上方快捷购买更多号码，增加中奖机会。</p>
+          </div>
+        `;
+      }
+    }
+
+    if (detailInfoList) {
+      detailInfoList.innerHTML = `
+        <div class="detail-info-row"><span>活动期次</span><strong>本田 Fan 160 2025（${roundName}）</strong></div>
+        <div class="detail-info-row"><span>活动奖品（第一名）</span><strong>${prizeText}</strong></div>
+        <div class="detail-info-row"><span>我的号码</span><strong style="color:#15803d;">${rec.number}</strong></div>
+        <div class="detail-info-row"><span>支付方式</span><strong>${payMethodText}</strong></div>
+        <div class="detail-info-row"><span>本期已售号码数</span><strong>${allSold.length} 个（深绿高亮为本人号码）</strong></div>
+      `;
+    }
+
+    updateDetailBuyButton();
+    renderDetailSoldGrid();
+  }
+
+  function openRoundDetailPage(rec) {
+    currentDetailRecord = rec;
+    detailBuyQty = 2;
+    if (detailSoldSearchInput) detailSoldSearchInput.value = "";
+    renderRoundDetailPage();
+    openModal("roundDetailPageModal");
+  }
+
+  if (closeRoundDetailBtn) {
+    closeRoundDetailBtn.addEventListener("click", () => closeModal("roundDetailPageModal"));
+  }
+  if (detailSupportBtn) {
+    detailSupportBtn.addEventListener("click", () => openModal("supportModal"));
+  }
+  document.querySelectorAll("[data-detail-add]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      detailBuyQty = Math.min(200, (Number(detailBuyQty) || 0) + Number(btn.dataset.detailAdd));
+      updateDetailBuyButton();
+    });
+  });
+  if (detailQtyMinus) {
+    detailQtyMinus.addEventListener("click", () => {
+      detailBuyQty = Math.max(1, (Number(detailBuyQty) || 1) - 1);
+      updateDetailBuyButton();
+    });
+  }
+  if (detailQtyPlus) {
+    detailQtyPlus.addEventListener("click", () => {
+      detailBuyQty = Math.min(200, (Number(detailBuyQty) || 1) + 1);
+      updateDetailBuyButton();
+    });
+  }
+  if (detailQtyInput) {
+    detailQtyInput.addEventListener("input", () => {
+      const cleaned = detailQtyInput.value.replace(/[^\d]/g, "");
+      detailBuyQty = Math.max(1, Math.min(200, parseInt(cleaned, 10) || 1));
+      updateDetailBuyButton();
+    });
+  }
+  if (detailSoldSearchInput) {
+    detailSoldSearchInput.addEventListener("input", renderDetailSoldGrid);
+  }
+  if (detailBuyNowBtn) {
+    detailBuyNowBtn.addEventListener("click", () => {
+      if (!currentUser) {
+        closeModal("roundDetailPageModal");
+        closeModal("ticketsModal");
+        openAuthPage("login", { lockAfter: false });
+        return;
+      }
+      const qty = Math.max(1, Math.min(200, Number(detailBuyQty) || 1));
+      const price = getDetailUnitPrice(qty);
+      const round = (currentDetailRecord && currentDetailRecord.round) || "第 202601 期";
+      openPayConfirmModal(currentUser, {
+        isNewRegistration: false,
+        customOrder: { qty, price, round, fromDetailPage: true }
+      });
     });
   }
 
@@ -1693,6 +2003,7 @@
   openTicketsBtn.addEventListener("click", openMyTicketsModal);
   openMyTicketsFromSuccessBtn.addEventListener("click", () => {
     closeModal("lockSuccessModal");
+    closeModal("roundDetailPageModal");
     openMyTicketsModal();
   });
 
@@ -1773,7 +2084,7 @@
 
   document.querySelectorAll(".modal-backdrop").forEach((backdrop) => {
     backdrop.addEventListener("click", (e) => {
-      if (e.target === backdrop && backdrop.id !== "authPageModal") {
+      if (e.target === backdrop && backdrop.id !== "authPageModal" && backdrop.id !== "roundDetailPageModal") {
         closeModal(backdrop.id);
       }
     });
@@ -1781,8 +2092,8 @@
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
-      // 优先关闭上层小弹窗，再关闭全屏登录注册页
-      const topIds = ["infoModal", "supportModal", "rulesModal", "ticketsModal", "lockSuccessModal", "payConfirmModal", "authPageModal"];
+      // 优先关闭上层小弹窗，再关闭全屏详情页 / 登录注册页
+      const topIds = ["lockSuccessModal", "payConfirmModal", "infoModal", "supportModal", "rulesModal", "roundDetailPageModal", "ticketsModal", "authPageModal"];
       for (const id of topIds) {
         const el = document.getElementById(id);
         if (el && !el.hidden) {

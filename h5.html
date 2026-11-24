@@ -759,6 +759,121 @@
     </div>
   </div>
 
+  <!-- 4.5 本期已售号码详情页（全屏 H5 详情页，查看本期全部已售号码并支持快捷购买） -->
+  <div class="modal-backdrop modal-backdrop--authpage modal-backdrop--detailpage" id="roundDetailPageModal" hidden role="dialog" aria-modal="true" aria-label="本期已售号码详情">
+    <div class="detail-page-sheet">
+      <!-- 顶部深绿头部区（参考图样式） -->
+      <div class="detail-hero-header">
+        <div class="detail-topbar">
+          <button type="button" class="detail-back-btn" id="closeRoundDetailBtn" aria-label="返回我的号码">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            <span>返回</span>
+          </button>
+          <strong class="detail-topbar-title">本期号码详情</strong>
+          <button type="button" class="detail-support-btn" id="detailSupportBtn">客服</button>
+        </div>
+
+        <div class="detail-hero-status">
+          <div class="detail-hero-left">
+            <div class="detail-hero-greet">
+              <span class="detail-hero-emoji" id="detailHeroEmoji" aria-hidden="true">🎉</span>
+              <div>
+                <h3 id="detailHeroTitle">本田 Fan 160 2025</h3>
+                <p id="detailHeroSub">第 202601 期 · 祝您好运！</p>
+              </div>
+            </div>
+            <div class="detail-hero-meta-row">
+              <span id="detailHeroTime">--</span>
+              <span class="detail-hero-ref" id="detailHeroRef">--</span>
+            </div>
+          </div>
+          <div class="detail-chances-badge">
+            <strong id="detailSoldTotalBadge">100</strong>
+            <span>本期已售</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-page-body">
+        <!-- 快捷购买卡片（支持增减数量并立即购买） -->
+        <section class="detail-buy-card" aria-label="快捷购买号码">
+          <div class="detail-buy-lead">
+            <span class="detail-buy-clover" aria-hidden="true">🍀</span>
+            <div>
+              <strong>获取更多号码！</strong>
+              <span>增加购买数量，提升本期中奖概率</span>
+            </div>
+          </div>
+
+          <div class="detail-buy-product">
+            <img src="assets/fan-160-hero.jpg" alt="本田 Fan 160 2025" class="detail-buy-thumb" />
+            <div class="detail-buy-info">
+              <span class="detail-buy-tag" id="detailBuyStatusTag">火热销售中</span>
+              <h4>本田 Fan 160 2025</h4>
+              <p id="detailBuyPrize">一等奖：2025款 本田 Fan 160 摩托车</p>
+            </div>
+          </div>
+
+          <div class="detail-buy-controls">
+            <div class="detail-quick-adds">
+              <button type="button" class="detail-quick-pill" data-detail-add="1">+1</button>
+              <button type="button" class="detail-quick-pill detail-quick-pill--accent" data-detail-add="5">+5</button>
+              <button type="button" class="detail-quick-pill" data-detail-add="10">+10</button>
+            </div>
+            <div class="detail-qty-stepper">
+              <button type="button" class="detail-step-btn" id="detailQtyMinus" aria-label="减少数量">−</button>
+              <input type="text" class="detail-qty-val" id="detailQtyInput" value="2" inputmode="numeric" aria-label="购买数量" />
+              <button type="button" class="detail-step-btn" id="detailQtyPlus" aria-label="增加数量">+</button>
+            </div>
+          </div>
+
+          <button type="button" class="detail-buy-submit-btn" id="detailBuyNowBtn">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+              <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm-1.2 14.2L7 12.4l1.4-1.4 2.4 2.4 5-5L17.2 9.8Z" />
+            </svg>
+            <span id="detailBuyBtnText">立即购买（$2.00）</span>
+          </button>
+        </section>
+
+        <!-- 本期开奖状态提示卡 -->
+        <section class="detail-draw-card" id="detailDrawStatusCard">
+          <!-- 由 app.js 动态渲染 -->
+        </section>
+
+        <!-- 本期销售详情 & 全部已售号码列表 -->
+        <section class="detail-sold-section">
+          <div class="detail-sold-header">
+            <div class="detail-sold-title-wrap">
+              <span class="detail-sold-icon" aria-hidden="true">🧾</span>
+              <div>
+                <h4>销售详情 / 本期全部已售号码</h4>
+                <p>实时同步本期已售有效号码池</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-info-list" id="detailInfoList">
+            <!-- 由 app.js 动态渲染 -->
+          </div>
+
+          <div class="detail-all-head">
+            <span class="detail-all-label">全部已售号码</span>
+            <div class="detail-all-right">
+              <input type="text" class="detail-sold-search" id="detailSoldSearchInput" placeholder="检索6位号码" maxlength="6" inputmode="numeric" />
+              <span class="detail-all-count" id="detailAllCountBadge">共 100 个</span>
+            </div>
+          </div>
+
+          <div class="detail-all-grid" id="detailAllSoldGrid">
+            <!-- 由 app.js 动态渲染本期全部已售号码 -->
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
   <!-- 5. 活动规则弹窗（PRD R02 / R03 / R04 / 4.1 明确披露） -->
   <div class="modal-backdrop" id="rulesModal" hidden role="dialog" aria-modal="true" aria-labelledby="rulesModalTitle">
     <div class="white-modal">
